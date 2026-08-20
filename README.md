@@ -75,13 +75,22 @@ No hay build, ni dependencias, ni paso de compilacion. Se publica solo con push.
 
 ## El sitio
 
-- Fondo: la **carta gris**, el gris neutro con el que se juzga color. Las fichas se
-  apoyan directamente sobre el, sin tarjeta y sin sombra, con cuatro marcas de corte
-  en las esquinas.
-- Al pulsar una ficha, la fila se abre en el sitio: vista previa a un lado y codigo
-  al otro. Nada de ventana emergente.
-- Tipografia Archivo (variable, con eje de ancho) y JetBrains Mono para el codigo.
-- Sin emojis. Sin versalitas. Sin radios.
+Animax habla el idioma de IRIS, MOOVIN y Naviris:
+
+- Base casi negra con tres niveles de superficie (`#08080a`, `#101013`, `#17171b`) y
+  bordes de un pixel en blanco translucido.
+- **Un solo acento cromatico: ambar `#e8b04b`.** Violeta es de IRIS, rojo de MOOVIN y
+  lima de Naviris; cada casa tiene el suyo.
+- Inter para la interfaz y **Geist Mono** para las micro-etiquetas, con tracking
+  abierto, igual que la etiqueta roja de MOOVIN.
+- Cabecera con el patron de MOOVIN: la marca de IRIS lleva al estudio, y la etiqueta
+  de la casa dice donde estas. Barra fija con vidrio real.
+- Radios 8 / 12 / 16 / 999, los de Naviris.
+- Al pulsar una ficha la fila se abre en el sitio: vista previa a un lado y codigo al
+  otro. Nada de ventana emergente.
+- El gris, el papel y la tinta no son la pagina: son los tres **materiales** sobre los
+  que se juzga una ficha, y viven dentro del visor.
+- Los scroll son siempre los nuestros. Sin emojis y sin versalitas.
 
 ## Derechos
 
