@@ -42,13 +42,22 @@ ejemplo" y otra "de verdad", asi que no pueden separarse.
 
 ## Como se ve en local
 
-El catalogo se lee con `fetch`, asi que abrir `index.html` a pelo no funciona.
-
 ```
 .\abrir.ps1
 ```
 
-Levanta un servidor en `http://localhost:4173/` y abre el navegador.
+Levanta un servidor en `http://localhost:4173/` y abre el navegador. Abrir
+`index.html` a pelo no funciona: el navegador no deja leer archivos por `file://`.
+
+Local o publicado da igual, la biblioteca pide el pase en los dos sitios: el
+contenido siempre viene del worker.
+
+### Ver una ficha antes de subirla
+
+`http://localhost:4173/?local=1` salta el pase, lee las fichas de
+`catalogo.local.json` (que no se versiona) y busca los archivos por ruta relativa
+dentro de las carpetas de seccion. Sirve para maquetar y para mirar como queda algo
+antes de que entre al bucket. El contenido de verdad nunca se sirve asi.
 
 ## Como se agrega una ficha
 
@@ -103,6 +112,10 @@ Animax habla el idioma de IRIS, MOOVIN y Naviris:
 - Cabecera con el patron de MOOVIN: la marca de IRIS lleva al estudio, y la etiqueta
   de la casa dice donde estas. Barra fija con vidrio real.
 - Radios 8 / 12 / 16 / 999, los de Naviris.
+- **La seccion SVGs va a lo shapes.gallery**, con su geometria medida del DOM:
+  baldosa cuadrada, radio al 12 % del lado y la forma dentro al 45 %. Las formas se
+  pintan **en linea, no como `<img>`**, para que el `fill="currentColor"` tome el
+  color de la baldosa. El nombre sale al pasar por encima: no compite con la forma.
 - Al pulsar una ficha la fila se abre en el sitio: vista previa a un lado y codigo al
   otro. Nada de ventana emergente.
 - El gris, el papel y la tinta no son la pagina: son los tres **materiales** sobre los
@@ -118,9 +131,11 @@ grabaciones de `tunes/`, cuyos derechos son de IRIS Studio.
 Que el sitio publicado sea accesible no otorga licencia de uso: poder verlo no es
 poder usarlo.
 
-**Ojo con `logos/`.** Si guardas marcas de terceros, esas marcas NO son nuestras.
-Van en el grupo `terceros`, siguen siendo de sus titulares y quedan fuera de la
-licencia. Anotalo en la `nota` de la ficha.
+**Ojo con lo que no es nuestro.** La biblioteca guarda tambien material de terceros
+como herramienta de trabajo, y ese material queda fuera de la licencia: sigue siendo
+de sus autores. **Anota siempre el origen en la `nota` de la ficha.** Hoy es el caso
+de las 72 formas de `svgs/`, que son de shapes.gallery (Mo), y de cualquier marca
+ajena que acabe en `logos/` (grupo `terceros`).
 
 ## Atajos
 
