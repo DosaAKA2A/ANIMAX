@@ -1,0 +1,72 @@
+ANIMAX — Licencia propietaria
+Copyright (c) 2026 IRIS Studio. Todos los derechos reservados.
+
+Este repositorio y todo lo que contiene son obra de IRIS Studio y NO son software
+ni contenido libre. Se publican en privado y, cuando se sirven en la web, se
+publican unicamente para su consulta.
+
+1. ALCANCE
+
+   Esta licencia cubre por igual las dos cosas que viven aqui:
+
+   a) El CODIGO del sitio: `index.html`, `animax.css`, `animax.js`, `catalogo.json`,
+      los scripts auxiliares y su documentacion.
+
+   b) El CONTENIDO de la biblioteca: las piezas de interfaz de `interfaces/`, los
+      graficos de `svgs/`, las marcas de `logos/` y las grabaciones, composiciones
+      y disenos sonoros de `tunes/`, junto con sus textos descriptivos.
+
+   El contenido de `tunes/` incluye obra musical original. Salvo pacto escrito en
+   contrario, los derechos de autor de esas obras, tanto de la composicion como de
+   la grabacion, pertenecen a IRIS Studio.
+
+2. LO QUE NO SE PERMITE
+
+   Sin autorizacion previa y por escrito de IRIS Studio, queda prohibido:
+
+   - copiar, reproducir o redistribuir cualquier parte de este repositorio;
+   - usar el contenido en proyectos, productos o piezas de terceros, sean
+     comerciales o no;
+   - crear obras derivadas, remezclas o adaptaciones;
+   - incorporar cualquier material de aqui a un conjunto de datos de entrenamiento
+     de modelos de aprendizaje automatico;
+   - revender, sublicenciar o ceder el material.
+
+   Que el sitio publicado sea accesible en internet no otorga ninguna licencia de
+   uso. Poder verlo no es poder usarlo.
+
+3. LO QUE SI SE PERMITE
+
+   IRIS Studio y las personas expresamente autorizadas por el estudio pueden usar
+   este material en los proyectos del propio estudio sin restriccion.
+
+4. MARCAS DE TERCEROS
+
+   La seccion `logos/` puede contener marcas que NO son de IRIS Studio, guardadas
+   como referencia de trabajo. Esas marcas siguen siendo propiedad de sus titulares
+   y esta licencia no se aplica a ellas ni transmite derecho alguno sobre ellas. Su
+   presencia aqui no implica afiliacion ni respaldo, y su uso queda sujeto a las
+   normas de marca de cada titular.
+
+5. SIN GARANTIA
+
+   El material se entrega "tal cual", sin garantia de ningun tipo. IRIS Studio no
+   responde de danos derivados de su uso.
+
+Para pedir permiso: studio.iris2026@gmail.com
+
+
+--- English summary ---
+
+Proprietary. Copyright (c) 2026 IRIS Studio. All rights reserved.
+
+This repository and everything in it — the site's source code, the interface
+pieces, the vector graphics, the marks and the original music and sound design in
+`tunes/` — are the work of IRIS Studio. No permission is granted to copy,
+redistribute, modify, resell or use any of it, in whole or in part, in any project
+outside IRIS Studio, including its use as machine-learning training data. Public
+accessibility of the published site grants no licence. Third-party marks stored in
+`logos/` remain the property of their respective owners and are excluded from this
+licence. Provided "as is", without warranty of any kind.
+
+Permission requests: studio.iris2026@gmail.com

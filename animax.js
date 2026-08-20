@@ -6,7 +6,7 @@
      #/interfaces/botones    un grupo dentro de la seccion
 */
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 
 const tabla = document.getElementById("tabla");
 const vacio = document.getElementById("vacio");
@@ -247,16 +247,16 @@ async function vista(p, destino, mini){
 
 /* La envoltura NO forma parte de lo que se copia: solo centra la pieza y le da tipografia. */
 function envoltura(html, fondo, mini){
-  const suelo = fondo === "tinta" ? "#17150f" : fondo === "papel" ? "#efebe1" : "#7e7b73";
-  const color = fondo === "tinta" ? "#efebe1" : "#17150f";
+  const suelo = fondo === "tinta" ? "#0a0a0b" : fondo === "papel" ? "#efebe1" : "#7e7b73";
+  const color = fondo === "tinta" ? "#f2f2f2" : "#17150f";
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   html,body{height:100%;margin:0;overflow:hidden}
   body{display:grid;place-items:center;padding:${mini ? 14 : 28}px;
        background:${suelo};color:${color};
-       font-family:"Archivo",system-ui,sans-serif;
+       font-family:"Inter",system-ui,sans-serif;
        ${mini ? "zoom:.86;" : ""}}
 </style></head><body>${html}</body></html>`;
 }

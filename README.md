@@ -83,6 +83,19 @@ No hay build, ni dependencias, ni paso de compilacion. Se publica solo con push.
 - Tipografia Archivo (variable, con eje de ancho) y JetBrains Mono para el codigo.
 - Sin emojis. Sin versalitas. Sin radios.
 
+## Derechos
+
+Repositorio **privado** y licencia **propietaria**: ver `LICENSE`. Cubre por igual el
+codigo del sitio y el contenido de la biblioteca, incluidas las composiciones y
+grabaciones de `tunes/`, cuyos derechos son de IRIS Studio.
+
+Que el sitio publicado sea accesible no otorga licencia de uso: poder verlo no es
+poder usarlo.
+
+**Ojo con `logos/`.** Si guardas marcas de terceros, esas marcas NO son nuestras.
+Van en el grupo `terceros`, siguen siendo de sus titulares y quedan fuera de la
+licencia. Anotalo en la `nota` de la ficha.
+
 ## Atajos
 
 - `/` enfoca el buscador. Buscando se mira **toda** la biblioteca, no solo la seccion abierta

@@ -5,26 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Animax</title>
 <meta name="description" content="Biblioteca de interfaces, SVGs, logos y tunes de IRIS Studio.">
+<meta name="theme-color" content="#08080a">
+<link rel="icon" href="assets/iris.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="animax.css">
 </head>
 <body>
 
-<header class="tinta">
-  <a class="tinta__marca" href="#/">
-    <span class="tinta__nombre">Animax</span>
-    <span class="tinta__nota">Biblioteca de IRIS Studio</span>
+<header class="barra">
+  <!-- Mismo patron que MOOVIN: la marca de IRIS lleva al estudio, y la etiqueta
+       en mono dice en que casa estas. -->
+  <a class="barra__marca" href="https://iris.it.com" target="_blank" rel="noopener" aria-label="IRIS Studio">
+    <svg class="barra__ico" viewBox="0 0 876.27 874.82" aria-hidden="true">
+      <path fill="currentColor" d="M1.08,582.41L0,302.19C-.65,131.46,130.07-1.65,303,.02l306.38,2.95c152.34,1.47,267.72,141.24,266.88,290.55l-1.72,307.39c-.86,154.14-136.95,274.21-288.33,273.92l-299.69-.58C128.09,873.93,1.69,742.98,1.08,582.41ZM670.98,820.63c85.92-7.81,145.77-71.41,151.41-157.79,5.07-77.74-16.57-152.57-53.84-222.68-82.97-156.09-213.93-281-375.71-352.86-56.61-25.15-115.91-37.9-176.04-34.9C124.83,56.97,57.47,124.72,53.55,217.62c-11.51,273.02,343.75,627.9,617.43,603.01Z"/>
+    </svg>
   </a>
+  <span class="barra__sep" aria-hidden="true"></span>
+  <a class="barra__tag" href="#/">Animax</a>
 
   <div class="buscador">
+    <svg class="buscador__lupa" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+    </svg>
     <label class="oculto" for="q">Buscar</label>
     <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar en toda la biblioteca">
     <kbd class="buscador__tecla">/</kbd>
   </div>
 
-  <output class="tinta__cuenta" id="cuenta" for="q"></output>
+  <output class="barra__cuenta" id="cuenta" for="q"></output>
 </header>
 
 <nav class="secciones" id="secciones" aria-label="Secciones"></nav>
@@ -37,6 +47,7 @@
 
 <footer class="pie">
   <span>Cada ficha es un archivo suelto. Lo que ves es exactamente lo que copias.</span>
+  <span class="pie__dcho">&copy; 2026 IRIS Studio. Todos los derechos reservados.</span>
   <span class="pie__ver" id="version"></span>
 </footer>
 
