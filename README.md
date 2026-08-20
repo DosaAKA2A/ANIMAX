@@ -194,8 +194,9 @@ de las 72 formas de `svgs/`, que son de shapes.gallery (Mo), y de los ocho logos
 grupo `terceros` (Arc, Arcoroc, Cristal d'Arques, Chef & Sommelier, KitchenAid, Mychef,
 Roichen y Wolfen), que son de sus titulares.
 
-Con el codigo pasa igual: la pieza `interfaces/bento-flip.html` esta reescrita con
-clases propias, pero **la tecnica es de GreenSock** y su ficha lo dice.
+Con el codigo pasa igual. Las piezas de `interfaces/` estan reescritas con clases
+propias, pero **la tecnica no siempre es nuestra** y su ficha lo dice: `bento-flip` es de
+GreenSock y `liquid-glass` de toi-nagasawa.
 
 ## Atajos
 
