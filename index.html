@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="animax.css">
 </head>
-<body>
+<body data-dentro="no">
 
 <header class="barra">
   <!-- Mismo patron que MOOVIN: la marca de IRIS lleva al estudio, y la etiqueta
@@ -35,7 +35,10 @@
   </div>
 
   <output class="barra__cuenta" id="cuenta" for="q"></output>
+  <button class="salir" id="salir" type="button" title="Salir de la biblioteca">Salir</button>
 </header>
+
+<div class="puerta" id="puerta" hidden></div>
 
 <nav class="secciones" id="secciones" aria-label="Secciones"></nav>
 <nav class="grupos" id="grupos" aria-label="Grupos de la seccion"></nav>

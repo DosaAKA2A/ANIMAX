@@ -1,0 +1,9 @@
+name = "animax"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+# El contenido con derechos vive aqui, no en el repo de GitHub, que es publico.
+# El bucket no tiene URL publica: todo pasa por el worker y todo pide pase.
+[[r2_buckets]]
+binding = "ANIMAX"
+bucket_name = "animax"

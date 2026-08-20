@@ -17,11 +17,28 @@ Cada seccion tiene sublinks por grupo, y cada uno es una URL:
 #/tunes/ambientes
 ```
 
+## Donde vive cada cosa
+
+**Este repositorio es publico y solo lleva el armazon.** El contenido no entra aqui.
+
+| | Donde vive | Quien lo ve |
+|---|---|---|
+| Codigo del sitio y **secciones** | este repo | cualquiera |
+| **Fichas y archivos** (piezas, SVGs, logos, tunes) | bucket R2 `animax` | solo con pase |
+
+El bucket no tiene URL publica. Todo lo sirve el worker
+`animax.studio-iris2026.workers.dev`, que pide un token firmado con caducidad de una
+semana. Por eso un archivo de `tunes/` no se puede bajar aunque alguien adivine la
+ruta: **no existe ruta que valga sin token**.
+
+Eso es lo que distingue esto de un pase escrito en JavaScript, que solo esconde la
+interfaz mientras los archivos siguen descargandose por su URL.
+
 ## La regla
 
-**Un archivo por ficha, y ese archivo es lo que se copia.** La web lo lee, lo pinta
-en vivo y muestra en el panel lo mismo que te llevas. No hay una version "de ejemplo"
-y otra "de verdad", asi que no pueden separarse.
+**Un archivo por ficha, y ese archivo es lo que se copia.** La web lo pide al worker,
+lo pinta en vivo y muestra en el panel lo mismo que te llevas. No hay una version "de
+ejemplo" y otra "de verdad", asi que no pueden separarse.
 
 ## Como se ve en local
 
@@ -35,25 +52,25 @@ Levanta un servidor en `http://localhost:4173/` y abre el navegador.
 
 ## Como se agrega una ficha
 
-1. Deja el archivo en la carpeta de su seccion.
-2. Anade su entrada al array `fichas` de `catalogo.json`:
+Con `subir.ps1`. Sube el archivo al bucket y escribe su ficha de una vez:
 
-```json
-{
-  "id": "nombre-en-guiones",
-  "nombre": "Como se lee",
-  "seccion": "interfaces",
-  "grupo": "botones",
-  "archivo": "interfaces/nombre-en-guiones.html",
-  "fondo": "carta",
-  "etiquetas": ["boton", "sin-js"],
-  "nota": "Que hace y cuando usarla."
-}
+```powershell
+$env:ANIMAX_TOKEN = "..."        # una vez por sesion
+
+.\subir.ps1 -Archivo .	ema.mp3 -Seccion tunes -Grupo temas -Nombre "Tema principal"
+.\subir.ps1 -Archivo .\onda.svg -Seccion svgs -Grupo separadores -Nombre "Onda doble" -Fondo papel
+.\subir.ps1 -Listar              # que hay en el bucket
 ```
 
-`seccion` y `grupo` tienen que coincidir con los `id` declarados arriba en el mismo
-archivo. Los grupos se pueden renombrar, quitar o anadir a gusto: los sublinks salen
-de ahi, y el que no tiene nada dentro se ve apagado.
+Opcionales: `-Nota`, `-Etiquetas a,b`, `-Fondo carta|papel|tinta`, `-Id`. Si repites
+un `-Id` se reemplaza la ficha, asi que sirve para corregir.
+
+Los tunes grandes se trocean solos: un Worker admite ~100 MB por peticion y R2 une
+las partes.
+
+**Las secciones y sus grupos si viven en el repo**, en `catalogo.json`, porque son
+estructura y no contenido con derechos. Renombralos, quitalos o anade los que quieras:
+los sublinks salen de ahi, y el grupo que no tiene nada dentro se ve apagado.
 
 **No hace falta decir de que tipo es.** La extension manda:
 
@@ -94,7 +111,7 @@ Animax habla el idioma de IRIS, MOOVIN y Naviris:
 
 ## Derechos
 
-Repositorio **privado** y licencia **propietaria**: ver `LICENSE`. Cubre por igual el
+Licencia **propietaria**: ver `LICENSE`. Cubre por igual el
 codigo del sitio y el contenido de la biblioteca, incluidas las composiciones y
 grabaciones de `tunes/`, cuyos derechos son de IRIS Studio.
 
@@ -109,3 +126,17 @@ licencia. Anotalo en la `nota` de la ficha.
 
 - `/` enfoca el buscador. Buscando se mira **toda** la biblioteca, no solo la seccion abierta
 - `Esc` cierra la ficha abierta, o vacia el buscador
+
+## El worker
+
+```
+cd worker
+npx wrangler deploy
+npx wrangler secret put ANIMAX_TOKEN    # administracion: subir y borrar
+npx wrangler secret put ANIMAX_PASE     # el pase de quien entra a mirar
+```
+
+Son dos credenciales distintas a proposito: el pase se puede repartir y rotar sin
+tocar el token que permite escribir. El pase que se entrega dura una semana y va
+firmado con HMAC contra `ANIMAX_TOKEN`, asi que el worker lo verifica solo, sin
+guardar sesiones.

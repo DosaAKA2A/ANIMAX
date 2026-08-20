@@ -6,7 +6,13 @@
      #/interfaces/botones    un grupo dentro de la seccion
 */
 
-const VERSION = "0.3.0";
+const VERSION = "0.4.0";
+
+/* El contenido no esta en este repo. Vive en el bucket R2 "animax" y lo sirve el
+   worker previo pase, asi que ningun archivo tiene URL que valga sin token. */
+const API = "https://animax.studio-iris2026.workers.dev";
+const LLAVE = "animax.pase";
+let token = localStorage.getItem(LLAVE) || "";
 
 const tabla = document.getElementById("tabla");
 const vacio = document.getElementById("vacio");
@@ -14,6 +20,7 @@ const cuenta = document.getElementById("cuenta");
 const campo = document.getElementById("q");
 const navSecciones = document.getElementById("secciones");
 const navGrupos = document.getElementById("grupos");
+const puertaEl = document.getElementById("puerta");
 
 const fuentes = new Map();          // ruta -> texto del archivo, se pide una sola vez
 let secciones = [];
@@ -34,25 +41,131 @@ const seccionDe = id => secciones.find(s => s.id === id) || null;
 /* ---------- carga ---------- */
 
 async function arrancar(){
+  /* Las SECCIONES son estructura y viven en el repo publico. Las FICHAS y los
+     archivos son contenido con derechos y vienen del bucket, previo pase. */
+  try{
+    const semilla = await (await fetch("catalogo.json", { cache: "no-cache" })).json();
+    secciones = semilla.secciones || [];
+  }catch(e){
+    return decir("No se pudo leer catalogo.json",
+      "Si abriste index.html directamente, el navegador no deja leer archivos. Levanta el servidor con .\abrir.ps1 y entra por http://localhost:4173/");
+  }
+
+  if(!token) return puerta();
+
   let datos;
   try{
-    datos = await (await fetch("catalogo.json", { cache: "no-cache" })).json();
+    const r = await fetch(API + "/catalogo?t=" + encodeURIComponent(token), { cache: "no-cache" });
+    if(r.status === 401){ olvidar(); return puerta("El pase caduco. Vuelve a entrar."); }
+    if(!r.ok) throw new Error(r.status);
+    datos = await r.json();
   }catch(e){
-    navSecciones.hidden = true;
-    return decir(
-      "No se pudo leer catalogo.json",
-      "Si abriste index.html directamente, el navegador no deja leer archivos. Levanta el servidor con .\\abrir.ps1 y entra por http://localhost:4173/"
-    );
+    return decir("No se pudo hablar con la biblioteca",
+      "El worker no responde. Comprueba que animax.studio-iris2026.workers.dev esta en pie.");
   }
-  secciones = datos.secciones || [];
+
   fichas = datos.fichas || [];
+  document.body.dataset.dentro = "si";
+  if(puertaEl) puertaEl.hidden = true;
   pintarSecciones();
   pintar();
 }
 
+function olvidar(){
+  token = "";
+  try{ localStorage.removeItem(LLAVE); }catch(e){ /* modo privado */ }
+  document.body.dataset.dentro = "no";
+}
+
+/* La puerta. No protege nada por si misma: lo que protege es que el archivo no
+   sale del bucket sin un token firmado por el worker. */
+function puerta(aviso){
+  document.body.dataset.dentro = "no";
+  vacio.hidden = true;
+  puertaEl.hidden = false;
+
+  const caja = document.createElement("div");
+  caja.className = "puerta__caja";
+
+  const ojo = document.createElement("p");
+  ojo.className = "puerta__ojo";
+  ojo.textContent = "Acceso";
+
+  const t = document.createElement("h1");
+  t.className = "puerta__t";
+  t.textContent = "Animax es privada";
+
+  const c = document.createElement("p");
+  c.className = "puerta__c";
+  c.textContent = "La biblioteca y todo lo que guarda son de IRIS Studio. Escribe el pase para entrar.";
+
+  const form = document.createElement("form");
+  form.className = "puerta__form";
+
+  const campoPase = document.createElement("input");
+  campoPase.type = "password";
+  campoPase.className = "puerta__campo";
+  campoPase.placeholder = "Pase";
+  campoPase.autocomplete = "current-password";
+  campoPase.setAttribute("aria-label", "Pase");
+
+  const enviar = document.createElement("button");
+  enviar.className = "boton";
+  enviar.type = "submit";
+  enviar.textContent = "Entrar";
+
+  const err = document.createElement("p");
+  err.className = "puerta__err";
+  err.textContent = aviso || "";
+  err.hidden = !aviso;
+
+  form.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    err.hidden = true;
+    enviar.disabled = true;
+    enviar.textContent = "Comprobando…";
+    try{
+      const r = await fetch(API + "/entrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pase: campoPase.value })
+      });
+      if(!r.ok){
+        err.textContent = r.status === 401 ? "Ese pase no es." : "No se pudo comprobar el pase.";
+        err.hidden = false;
+        return;
+      }
+      const d = await r.json();
+      token = d.token;
+      try{ localStorage.setItem(LLAVE, token); }catch(e){ /* modo privado: dura la sesion */ }
+      puertaEl.hidden = true;
+      arrancar();
+    }catch(e){
+      err.textContent = "No se pudo hablar con la biblioteca.";
+      err.hidden = false;
+    }finally{
+      enviar.disabled = false;
+      enviar.textContent = "Entrar";
+    }
+  });
+
+  form.append(campoPase, enviar);
+  caja.append(ojo, t, c, form, err);
+  puertaEl.replaceChildren(caja);
+  campoPase.focus();
+}
+
+/* Toda ruta de archivo se resuelve contra el worker, nunca contra el sitio. */
+function urlDe(key, descarga){
+  return API + (descarga ? "/descargar" : "/archivo")
+    + "?key=" + encodeURIComponent(key)
+    + "&t=" + encodeURIComponent(token)
+    + (descarga ? "&n=" + encodeURIComponent(key.split("/").pop()) : "");
+}
+
 async function fuente(r){
   if(fuentes.has(r)) return fuentes.get(r);
-  const t = await (await fetch(r, { cache: "no-cache" })).text();
+  const t = await (await fetch(urlDe(r), { cache: "no-cache" })).text();
   fuentes.set(r, t.trimEnd());
   return fuentes.get(r);
 }
@@ -73,8 +186,9 @@ function clase(archivo){
 async function copiable(p){
   const c = clase(p.archivo);
   if(c === "vivo" || c === "vector") return fuente(p.archivo);
-  if(c === "imagen") return `<img src="${p.archivo}" alt="${p.nombre}">`;
-  if(c === "audio") return `<audio src="${p.archivo}" preload="metadata" controls></audio>`;
+  const suelto = p.archivo.split("/").pop();
+  if(c === "imagen") return `<img src="${suelto}" alt="${p.nombre}">`;
+  if(c === "audio") return `<audio src="${suelto}" preload="metadata" controls></audio>`;
   return p.archivo;
 }
 
@@ -158,11 +272,11 @@ function pintar(){
   }else if(s){
     const g = (s.grupos || []).find(x => x.id === ruta().grupo);
     decir("En " + s.nombre + (g ? " · " + g.nombre : "") + " todavia no hay nada",
-          "Deja el archivo en la carpeta " + s.carpeta + "/ y anade su ficha en catalogo.json"
-          + (g ? ' con grupo "' + g.id + '"' : "") + ". El README tiene el molde.");
+          "Subelo con .\subir.ps1 -Archivo ruta -Seccion " + s.id
+          + (g ? " -Grupo " + g.id : " -Grupo <grupo>") + " -Nombre \"Como se lee\". El README lo explica.");
   }else{
     decir("La biblioteca esta vacia",
-          "Deja tu primer archivo en interfaces/, svgs/, logos/ o tunes/ y anade su ficha en catalogo.json. El README tiene el molde.");
+          "Sube tu primer archivo con .\subir.ps1. Va al bucket, no al repositorio: el contenido no se publica en GitHub.");
   }
 }
 
@@ -227,7 +341,7 @@ async function vista(p, destino, mini){
 
   if(c === "vector" || c === "imagen"){
     const img = document.createElement("img");
-    img.src = p.archivo;
+    img.src = urlDe(p.archivo);
     img.alt = p.nombre;
     img.loading = "lazy";
     destino.replaceChildren(img);
@@ -296,7 +410,7 @@ function marcaAudio(p){
   a.preload = "metadata";
   a.addEventListener("loadedmetadata", () => { t.textContent = reloj(a.duration); }, { once: true });
   a.addEventListener("error", () => { t.textContent = "no carga"; }, { once: true });
-  a.src = p.archivo;
+  a.src = urlDe(p.archivo);
   despiertaAlVerse(a);
   return caja;
 }
@@ -307,7 +421,7 @@ function reproductor(p){
 
   const a = new Audio();
   a.preload = "metadata";
-  a.src = p.archivo;
+  a.src = urlDe(p.archivo);
   despiertaAlVerse(a);
 
   const play = document.createElement("button");
@@ -465,12 +579,20 @@ function mesa(p){
 
   const abrir = document.createElement("a");
   abrir.className = "boton boton--llano";
-  abrir.href = p.archivo;
+  abrir.href = urlDe(p.archivo);
   abrir.target = "_blank";
   abrir.rel = "noopener";
   abrir.textContent = "Abrir el archivo";
 
   acciones.append(copiar, abrir);
+
+  if(clase(p.archivo) === "audio" || clase(p.archivo) === "imagen"){
+    const bajar = document.createElement("a");
+    bajar.className = "boton boton--llano";
+    bajar.href = urlDe(p.archivo, true);
+    bajar.textContent = "Descargar";
+    acciones.append(bajar);
+  }
 
   if(clase(p.archivo) !== "audio"){
     const fondos = document.createElement("div");
@@ -504,6 +626,13 @@ function mesa(p){
 addEventListener("hashchange", () => { campo.value = ""; pintar(); });
 
 campo.addEventListener("input", pintar);
+
+document.getElementById("salir").addEventListener("click", () => {
+  olvidar();
+  fichas = [];
+  tabla.replaceChildren();
+  puerta("Has salido.");
+});
 
 addEventListener("keydown", e => {
   if(e.key === "/" && document.activeElement !== campo){ e.preventDefault(); campo.focus(); }
