@@ -1,0 +1,348 @@
+/* Animax — biblioteca de piezas de IRIS Studio
+   Tres materiales: carta gris (juzgar), tinta (navegar), papel (leer). */
+
+:root{
+  --carta:      #7e7b73;
+  --carta-alta: #8b8880;
+  --tinta:      #17150f;
+  --tinta-suave:#2a2720;
+  --papel:      #efebe1;
+  --papel-baja: #ded9cd;
+  --marca:      #2436d9;
+  --trazo:      rgba(23,21,15,.30);
+  --trazo-fino: rgba(23,21,15,.16);
+
+  --u: 8px;                       /* modulo base: todo cae en esta rejilla */
+  --ancho: 1760px;                /* la columna de contenido no crece mas */
+  --margen: max(calc(var(--u) * 2.5), calc((100% - var(--ancho)) / 2));
+  --barra: 60px;
+  --radio: 0px;                   /* la casa no redondea nada */
+
+  --t-display: "Archivo", system-ui, sans-serif;
+  --t-codigo: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+html{ -webkit-text-size-adjust: 100%; }
+
+body{
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--t-display);
+  font-variation-settings: "wdth" 100;
+  color: var(--tinta);
+  background-color: var(--carta);
+  background-image:
+    linear-gradient(var(--trazo-fino) 1px, transparent 1px),
+    linear-gradient(90deg, var(--trazo-fino) 1px, transparent 1px);
+  background-size: calc(var(--u) * 8) calc(var(--u) * 8), calc(var(--u) * 8) calc(var(--u) * 8);
+  background-position: 0 var(--barra);
+  padding-top: var(--barra);
+}
+
+.oculto{
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+:focus-visible{
+  outline: 2px solid var(--marca);
+  outline-offset: 3px;
+}
+
+/* ---------- barra de tinta ---------- */
+
+.tinta{
+  position: fixed; inset: 0 0 auto 0; z-index: 40;
+  height: var(--barra);
+  display: flex; align-items: center; gap: calc(var(--u) * 3);
+  padding: 0 var(--margen);
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.tinta__marca{ display: flex; align-items: baseline; gap: calc(var(--u) * 1.5); min-width: 0; }
+
+.tinta__nombre{
+  font-size: 21px;
+  font-variation-settings: "wdth" 118, "wght" 800;
+  letter-spacing: .01em;
+}
+
+.tinta__nota{
+  font-size: 12px;
+  font-variation-settings: "wdth" 100, "wght" 500;
+  color: rgba(239,235,225,.55);
+  white-space: nowrap;
+}
+
+.buscador{ position: relative; flex: 1 1 auto; max-width: 460px; }
+
+.buscador input{
+  width: 100%;
+  height: calc(var(--u) * 4.5);
+  padding: 0 calc(var(--u) * 5) 0 calc(var(--u) * 1.5);
+  font: inherit;
+  font-size: 14px;
+  color: var(--papel);
+  background: var(--tinta-suave);
+  border: 1px solid rgba(239,235,225,.14);
+  border-radius: var(--radio);
+}
+.buscador input::placeholder{ color: rgba(239,235,225,.42); }
+.buscador input:focus{ border-color: var(--marca); outline: none; }
+.buscador input::-webkit-search-cancel-button{ filter: invert(1) opacity(.5); }
+
+.buscador__tecla{
+  position: absolute; top: 50%; right: calc(var(--u) * 1.25); translate: 0 -50%;
+  font-family: var(--t-codigo); font-size: 11px;
+  padding: 2px 7px;
+  color: rgba(239,235,225,.5);
+  border: 1px solid rgba(239,235,225,.18);
+  pointer-events: none;
+}
+.buscador input:focus ~ .buscador__tecla{ opacity: 0; }
+
+.tinta__cuenta{
+  margin-left: auto;
+  font-family: var(--t-codigo); font-size: 12px;
+  color: rgba(239,235,225,.55);
+  white-space: nowrap;
+}
+
+/* ---------- rail de filtros ---------- */
+
+.rail{
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: var(--u);
+  padding: calc(var(--u) * 2.5) var(--margen) calc(var(--u) * 1.5);
+}
+
+.rail__b{
+  font: inherit; font-size: 13px;
+  font-variation-settings: "wdth" 108, "wght" 600;
+  padding: calc(var(--u) * .75) calc(var(--u) * 1.5);
+  color: var(--tinta);
+  background: transparent;
+  border: 1px solid var(--trazo);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+.rail__b:hover{ background: var(--carta-alta); }
+.rail__b[aria-pressed="true"]{
+  color: var(--papel);
+  background: var(--tinta);
+  border-color: var(--tinta);
+}
+
+.rail__sep{
+  width: 1px; height: calc(var(--u) * 3);
+  margin: 0 var(--u);
+  background: var(--trazo);
+}
+
+.rail__etiquetas{ display: flex; flex-wrap: wrap; gap: 6px; }
+
+.eti{
+  font-family: var(--t-codigo); font-size: 11px;
+  padding: 4px 8px;
+  color: rgba(23,21,15,.72);
+  background: transparent;
+  border: 1px dashed var(--trazo);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+.eti:hover{ color: var(--tinta); border-style: solid; }
+.eti[aria-pressed="true"]{
+  color: var(--papel); background: var(--marca);
+  border-color: var(--marca); border-style: solid;
+}
+
+/* ---------- la tabla y sus ventanas ---------- */
+
+.tabla{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: calc(var(--u) * 4);
+  padding: calc(var(--u) * 2) var(--margen) calc(var(--u) * 8);
+  align-items: start;
+}
+
+.ventana{
+  position: relative;
+  display: block; width: 100%;
+  padding: 0;
+  font: inherit; text-align: left; color: inherit;
+  background: transparent; border: 0;
+  cursor: pointer;
+}
+
+/* Las cuatro marcas de corte. La pieza no vive en una tarjeta: vive en la carta. */
+.ventana__marco{
+  position: relative;
+  aspect-ratio: 4 / 3;
+  display: grid; place-items: center;
+  overflow: hidden;
+}
+.ventana__marco::before,
+.ventana__marco::after{
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none; z-index: 2;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--trazo), var(--trazo)),
+    linear-gradient(var(--trazo), var(--trazo)),
+    linear-gradient(var(--trazo), var(--trazo)),
+    linear-gradient(var(--trazo), var(--trazo));
+  background-size: 1px 14px, 14px 1px, 1px 14px, 14px 1px;
+  transition: background-size .18s ease;
+}
+.ventana__marco::before{ background-position: 0 0, 0 0, 100% 0, 100% 0; }
+.ventana__marco::after{ background-position: 0 100%, 0 100%, 100% 100%, 100% 100%; }
+
+.ventana:hover .ventana__marco::before,
+.ventana:hover .ventana__marco::after,
+.ventana[aria-expanded="true"] .ventana__marco::before,
+.ventana[aria-expanded="true"] .ventana__marco::after{
+  background-image:
+    linear-gradient(var(--marca), var(--marca)),
+    linear-gradient(var(--marca), var(--marca)),
+    linear-gradient(var(--marca), var(--marca)),
+    linear-gradient(var(--marca), var(--marca));
+  background-size: 1px 24px, 24px 1px, 1px 24px, 24px 1px;
+}
+
+.ventana__lienzo{
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  overflow: hidden;
+}
+.ventana__lienzo iframe{ width: 100%; height: 100%; border: 0; display: block; }
+.ventana__lienzo img{ max-width: 78%; max-height: 70%; display: block; }
+
+.fondo-tinta{ background: var(--tinta); }
+.fondo-papel{ background: var(--papel); }
+.fondo-carta{ background: transparent; }
+
+.ventana__pie{
+  display: flex; align-items: baseline; gap: var(--u);
+  padding-top: calc(var(--u) * 1.25);
+}
+.ventana__nombre{
+  font-size: 14px;
+  font-variation-settings: "wdth" 106, "wght" 700;
+}
+.ventana__tipo{
+  margin-left: auto;
+  font-family: var(--t-codigo); font-size: 10px;
+  color: rgba(23,21,15,.55);
+}
+
+/* ---------- la mesa: la fila se abre en el sitio ---------- */
+
+.mesa{
+  grid-column: 1 / -1;
+  background: var(--papel);
+  border: 1px solid var(--tinta);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.mesa__vista{
+  position: relative;
+  min-height: 300px;
+  display: grid; place-items: center;
+  border-right: 1px solid var(--trazo);
+  overflow: hidden;
+}
+.mesa__vista iframe{ width: 100%; height: 100%; min-height: 300px; border: 0; }
+.mesa__vista img{ max-width: 70%; max-height: 220px; }
+
+.mesa__lado{ display: flex; flex-direction: column; min-width: 0; }
+
+.mesa__cabeza{
+  display: flex; align-items: center; gap: var(--u);
+  padding: calc(var(--u) * 1.5) calc(var(--u) * 2);
+  border-bottom: 1px solid var(--trazo);
+}
+.mesa__nombre{
+  font-size: 16px;
+  font-variation-settings: "wdth" 112, "wght" 800;
+}
+.mesa__etis{ display: flex; gap: 6px; margin-left: auto; }
+.mesa__eti{
+  font-family: var(--t-codigo); font-size: 10px;
+  padding: 2px 6px; color: rgba(23,21,15,.6);
+  border: 1px solid var(--trazo-fino);
+}
+
+.mesa__nota{
+  padding: calc(var(--u) * 1.5) calc(var(--u) * 2) 0;
+  margin: 0;
+  font-size: 13px; line-height: 1.5;
+  color: rgba(23,21,15,.75);
+}
+
+.mesa__codigo{
+  flex: 1 1 auto;
+  margin: calc(var(--u) * 1.5) calc(var(--u) * 2);
+  max-height: 260px; overflow: auto;
+  font-family: var(--t-codigo); font-size: 12px; line-height: 1.55;
+  white-space: pre;
+  color: var(--tinta);
+  background: var(--papel-baja);
+  padding: calc(var(--u) * 1.5);
+  border: 1px solid var(--trazo-fino);
+  scrollbar-width: thin;
+  scrollbar-color: var(--trazo) transparent;
+}
+
+.mesa__acciones{
+  display: flex; gap: var(--u); align-items: center;
+  padding: 0 calc(var(--u) * 2) calc(var(--u) * 2);
+}
+
+.boton{
+  font: inherit; font-size: 13px;
+  font-variation-settings: "wdth" 106, "wght" 700;
+  padding: calc(var(--u) * 1) calc(var(--u) * 2);
+  color: var(--papel); background: var(--tinta);
+  border: 1px solid var(--tinta); border-radius: var(--radio);
+  cursor: pointer;
+}
+.boton:hover{ background: var(--marca); border-color: var(--marca); }
+.boton--llano{ color: var(--tinta); background: transparent; }
+.boton--llano:hover{ color: var(--papel); }
+.boton[data-hecho="si"]{ background: var(--marca); border-color: var(--marca); }
+
+.mesa__fondos{ display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.mesa__fondo{
+  width: 22px; height: 22px; padding: 0;
+  border: 1px solid var(--trazo); cursor: pointer;
+}
+.mesa__fondo[aria-pressed="true"]{ outline: 2px solid var(--marca); outline-offset: 1px; }
+
+.vacio{
+  padding: calc(var(--u) * 6) var(--margen);
+  font-size: 15px; color: rgba(23,21,15,.7);
+}
+
+.pie{
+  display: flex; gap: var(--u); align-items: baseline;
+  padding: calc(var(--u) * 2) var(--margen);
+  border-top: 1px solid var(--trazo);
+  font-size: 12px; color: rgba(23,21,15,.62);
+}
+.pie__ver{ margin-left: auto; font-family: var(--t-codigo); }
+
+@media (max-width: 720px){
+  :root{ --barra: 56px; }
+  .tinta__nota{ display: none; }
+  .mesa{ grid-template-columns: 1fr; }
+  .mesa__vista{ border-right: 0; border-bottom: 1px solid var(--trazo); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

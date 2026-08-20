@@ -1,0 +1,35 @@
+<!-- Boton desplazado: el bloque de color va corrido y encaja al pasar el raton. -->
+<style>
+  .bx-marco { position: relative; display: inline-block; }
+
+  .bx-bloque {
+    position: absolute; inset: 0;
+    background: #2436d9;
+    translate: 6px 6px;
+    transition: translate .16s cubic-bezier(.2, .7, .3, 1);
+  }
+
+  .bx-boton {
+    position: relative;
+    display: inline-flex; align-items: center;
+    padding: 13px 24px;
+    font: 700 14px/1 "Archivo", system-ui, sans-serif;
+    color: #17150f;
+    background: #efebe1;
+    border: 1.5px solid #17150f;
+    cursor: pointer;
+  }
+
+  .bx-marco:hover .bx-bloque { translate: 0 0; }
+  .bx-marco:has(.bx-boton:active) .bx-bloque { translate: 2px 2px; }
+  .bx-boton:focus-visible { outline: 2px solid #2436d9; outline-offset: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bx-bloque { transition: none; }
+  }
+</style>
+
+<span class="bx-marco">
+  <span class="bx-bloque" aria-hidden="true"></span>
+  <button class="bx-boton" type="button">Guardar cambios</button>
+</span>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Medidor: pista partida en segmentos y un arco lleno encima.
+       El arco usa pathLength="100", asi que stroke-dasharray="62 100" son 62 de cada 100. -->
+  <g fill="none" stroke-linecap="butt">
+    <circle cx="100" cy="100" r="78" stroke="#17150f" stroke-opacity=".25"
+            stroke-width="14" stroke-dasharray="18 6"/>
+    <circle cx="100" cy="100" r="78" stroke="#2436d9" stroke-width="14"
+            pathLength="100" stroke-dasharray="62 100"
+            transform="rotate(-90 100 100)"/>
+  </g>
+</svg>

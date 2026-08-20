@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" width="1200" height="200" preserveAspectRatio="none">
+  <!-- Separador de dos ondas desfasadas. Pon width:100% y height:auto y corta abajo. -->
+  <path d="M0,96 C160,40 320,152 480,104 C640,56 800,144 960,112 C1080,88 1140,104 1200,120 L1200,200 L0,200 Z"
+        fill="#17150f" opacity=".22"/>
+  <path d="M0,124 C180,72 340,168 520,128 C700,88 860,160 1020,132 C1110,116 1160,128 1200,140 L1200,200 L0,200 Z"
+        fill="#17150f"/>
+</svg>

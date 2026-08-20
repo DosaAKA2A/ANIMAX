@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animax</title>
+<meta name="description" content="Biblioteca de piezas de interfaz, formas SVG y logos de IRIS Studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="animax.css">
+</head>
+<body>
+
+<header class="tinta">
+  <div class="tinta__marca">
+    <span class="tinta__nombre">Animax</span>
+    <span class="tinta__nota">Biblioteca de IRIS Studio</span>
+  </div>
+
+  <div class="buscador">
+    <label class="oculto" for="q">Buscar una pieza</label>
+    <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Buscar una pieza">
+    <kbd class="buscador__tecla">/</kbd>
+  </div>
+
+  <output class="tinta__cuenta" id="cuenta" for="q"></output>
+</header>
+
+<nav class="rail" aria-label="Tipo de pieza">
+  <button class="rail__b" data-tipo="todo" aria-pressed="true">Todo</button>
+  <button class="rail__b" data-tipo="pieza" aria-pressed="false">Piezas</button>
+  <button class="rail__b" data-tipo="forma" aria-pressed="false">Formas</button>
+  <button class="rail__b" data-tipo="logo" aria-pressed="false">Logos</button>
+  <span class="rail__sep" aria-hidden="true"></span>
+  <div class="rail__etiquetas" id="etiquetas"></div>
+</nav>
+
+<main>
+  <div class="tabla" id="tabla" role="list"></div>
+  <p class="vacio" id="vacio" hidden>No hay nada con ese nombre. Prueba con una etiqueta como boton, onda o vidrio.</p>
+</main>
+
+<footer class="pie">
+  <span>Cada pieza es un archivo suelto. Lo que ves es exactamente lo que copias.</span>
+  <span class="pie__ver" id="version"></span>
+</footer>
+
+<script src="animax.js" type="module"></script>
+</body>
+</html>
