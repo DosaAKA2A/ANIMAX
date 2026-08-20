@@ -32,12 +32,9 @@ body{
   font-family: var(--t-display);
   font-variation-settings: "wdth" 100;
   color: var(--tinta);
+  /* plano y sin trama: una carta gris de verdad no lleva rejilla,
+     y las marcas de corte ya cuentan que hay un modulo detras */
   background-color: var(--carta);
-  background-image:
-    linear-gradient(var(--trazo-fino) 1px, transparent 1px),
-    linear-gradient(90deg, var(--trazo-fino) 1px, transparent 1px);
-  background-size: calc(var(--u) * 8) calc(var(--u) * 8), calc(var(--u) * 8) calc(var(--u) * 8);
-  background-position: 0 var(--barra);
   padding-top: var(--barra);
 }
 
