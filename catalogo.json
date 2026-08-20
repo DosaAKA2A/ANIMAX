@@ -1,184 +1,57 @@
-[
-  {
-    "id": "boton-desplazado",
-    "nombre": "Boton desplazado",
-    "tipo": "pieza",
-    "archivo": "piezas/boton-desplazado.html",
-    "fondo": "carta",
-    "etiquetas": ["boton", "hover", "sin-js"],
-    "nota": "El bloque de color va corrido y encaja al pasar el raton. Sustituye a la sombra sin usar box-shadow."
-  },
-  {
-    "id": "campo-linea",
-    "nombre": "Campo de una linea",
-    "tipo": "pieza",
-    "archivo": "piezas/campo-linea.html",
-    "fondo": "papel",
-    "etiquetas": ["formulario", "campo", "sin-js"],
-    "nota": "Sin caja: solo la linea base. La etiqueta sube al escribir y el trazo se dibuja de izquierda a derecha."
-  },
-  {
-    "id": "panel-vidrio",
-    "nombre": "Panel de vidrio",
-    "tipo": "pieza",
-    "archivo": "piezas/panel-vidrio.html",
-    "fondo": "carta",
-    "etiquetas": ["panel", "vidrio", "fondo"],
-    "nota": "Vidrio real con backdrop-filter: toma el color de lo que tiene detras. Sobre un fondo plano no se ve nada, y eso es correcto."
-  },
-  {
-    "id": "barra-segmentos",
-    "nombre": "Barra de segmentos",
-    "tipo": "pieza",
-    "archivo": "piezas/barra-segmentos.html",
-    "fondo": "carta",
-    "etiquetas": ["pestanas", "control", "sin-js"],
-    "nota": "Un solo indicador se desliza entre las opciones. El estado vive en tres radios y el movimiento sale de :has()."
-  },
-  {
-    "id": "tarjeta-esquina",
-    "nombre": "Tarjeta con esquina",
-    "tipo": "pieza",
-    "archivo": "piezas/tarjeta-esquina.html",
-    "fondo": "carta",
-    "etiquetas": ["tarjeta", "clip-path", "hover"],
-    "nota": "El corte de la esquina deja sitio a la clave de la ficha y crece al pasar el raton. Anima con @property."
-  },
-  {
-    "id": "interruptor-riel",
-    "nombre": "Interruptor de riel",
-    "tipo": "pieza",
-    "archivo": "piezas/interruptor-riel.html",
-    "fondo": "carta",
-    "etiquetas": ["control", "interruptor", "sin-js"],
-    "nota": "Pulgar cuadrado sobre riel recto, con la palabra del estado dentro. Nada de pastilla redondeada."
-  },
+{
+  "secciones": [
+    {
+      "id": "interfaces",
+      "nombre": "Interfaces",
+      "carpeta": "interfaces",
+      "singular": "pieza",
+      "plural": "piezas",
+      "grupos": [
+        { "id": "botones", "nombre": "Botones" },
+        { "id": "campos", "nombre": "Campos" },
+        { "id": "paneles", "nombre": "Paneles" },
+        { "id": "navegacion", "nombre": "Navegacion" },
+        { "id": "datos", "nombre": "Datos" }
+      ]
+    },
+    {
+      "id": "svgs",
+      "nombre": "SVGs",
+      "carpeta": "svgs",
+      "singular": "forma",
+      "plural": "formas",
+      "grupos": [
+        { "id": "formas", "nombre": "Formas" },
+        { "id": "fondos", "nombre": "Fondos" },
+        { "id": "iconos", "nombre": "Iconos" },
+        { "id": "separadores", "nombre": "Separadores" }
+      ]
+    },
+    {
+      "id": "logos",
+      "nombre": "Logos",
+      "carpeta": "logos",
+      "singular": "logo",
+      "plural": "logos",
+      "grupos": [
+        { "id": "iris", "nombre": "IRIS Studio" },
+        { "id": "proyectos", "nombre": "Proyectos" },
+        { "id": "terceros", "nombre": "Terceros" }
+      ]
+    },
+    {
+      "id": "tunes",
+      "nombre": "Tunes",
+      "carpeta": "tunes",
+      "singular": "tune",
+      "plural": "tunes",
+      "grupos": [
+        { "id": "temas", "nombre": "Temas" },
+        { "id": "ambientes", "nombre": "Ambientes" },
+        { "id": "efectos", "nombre": "Efectos" }
+      ]
+    }
+  ],
 
-  {
-    "id": "malla-puntos",
-    "nombre": "Malla de puntos",
-    "tipo": "forma",
-    "archivo": "formas/malla-puntos.svg",
-    "fondo": "papel",
-    "etiquetas": ["fondo", "patron", "rejilla"],
-    "nota": "Patron de puntos que se desvanece hacia abajo con una mascara. Repetible en horizontal."
-  },
-  {
-    "id": "onda-doble",
-    "nombre": "Onda doble",
-    "tipo": "forma",
-    "archivo": "formas/onda-doble.svg",
-    "fondo": "papel",
-    "etiquetas": ["separador", "onda", "seccion"],
-    "nota": "Separador de dos ondas desfasadas. Ponlo a width 100% y height auto pegado al borde de la seccion."
-  },
-  {
-    "id": "mancha-organica",
-    "nombre": "Mancha organica",
-    "tipo": "forma",
-    "archivo": "formas/mancha-organica.svg",
-    "fondo": "carta",
-    "etiquetas": ["mancha", "fondo", "organico"],
-    "nota": "Una sola curva cerrada. Cambiale el fill y sirve de fondo, de mascara o de recorte de foto."
-  },
-  {
-    "id": "rejilla-horizonte",
-    "nombre": "Rejilla en fuga",
-    "tipo": "forma",
-    "archivo": "formas/rejilla-horizonte.svg",
-    "fondo": "papel",
-    "etiquetas": ["rejilla", "perspectiva", "fondo"],
-    "nota": "Rejilla en perspectiva con las verticales convergiendo en un punto. Las horizontales se abren al acercarse."
-  },
-  {
-    "id": "grano",
-    "nombre": "Grano de pelicula",
-    "tipo": "forma",
-    "archivo": "formas/grano.svg",
-    "fondo": "papel",
-    "etiquetas": ["textura", "ruido", "fondo"],
-    "nota": "feTurbulence sin color. Va encima con mix-blend-mode multiply y opacidad baja; baja baseFrequency y sale nube."
-  },
-  {
-    "id": "anillo-segmentado",
-    "nombre": "Anillo segmentado",
-    "tipo": "forma",
-    "archivo": "formas/anillo-segmentado.svg",
-    "fondo": "papel",
-    "etiquetas": ["medidor", "dato", "circulo"],
-    "nota": "Pista partida en segmentos con un arco lleno encima. Con pathLength 100 el dasharray se lee como porcentaje."
-  },
-
-  {
-    "id": "iris-isotipo",
-    "nombre": "IRIS, isotipo",
-    "tipo": "logo",
-    "archivo": "logos/iris-isotipo.svg",
-    "fondo": "papel",
-    "etiquetas": ["iris", "marca"],
-    "nota": "El isotipo oficial tal cual sale de iris.it.com. No lleva punto ni bolita, y no se reconstruye con tipografia."
-  },
-  {
-    "id": "iris-completo",
-    "nombre": "IRIS, completo",
-    "tipo": "logo",
-    "archivo": "logos/iris-completo.svg",
-    "fondo": "tinta",
-    "etiquetas": ["iris", "marca"],
-    "nota": "Version horizontal con el nombre. Viene en blanco, asi que pide fondo oscuro."
-  },
-  {
-    "id": "naviris",
-    "nombre": "Naviris",
-    "tipo": "logo",
-    "archivo": "logos/naviris.svg",
-    "fondo": "tinta",
-    "etiquetas": ["naviris", "marca"],
-    "nota": "Marca del navegador. El archivo conserva el nombre cobalt_logo en el repo de Naviris."
-  },
-  {
-    "id": "moovin",
-    "nombre": "MOOVIN",
-    "tipo": "logo",
-    "archivo": "logos/moovin.svg",
-    "fondo": "papel",
-    "etiquetas": ["moovin", "marca"],
-    "nota": "Mismo trazado que el favicon de IRIS en el rojizo del estudio, #dc402a."
-  },
-  {
-    "id": "animata",
-    "nombre": "Animata",
-    "tipo": "logo",
-    "archivo": "logos/animata.svg",
-    "fondo": "papel",
-    "etiquetas": ["animata", "marca"],
-    "nota": "Isotipo de la app de captura de movimiento, en gris medio."
-  },
-  {
-    "id": "grief",
-    "nombre": "GRIEF",
-    "tipo": "logo",
-    "archivo": "logos/grief.svg",
-    "fondo": "tinta",
-    "etiquetas": ["grief", "marca", "degradado"],
-    "nota": "Lleva un degradado propio de rojo a naranja definido dentro del archivo."
-  },
-  {
-    "id": "dosa",
-    "nombre": "DOSA",
-    "tipo": "logo",
-    "archivo": "logos/dosa.svg",
-    "fondo": "tinta",
-    "etiquetas": ["dosa", "marca"],
-    "nota": "Logotipo personal del portafolio. Casi blanco, pide fondo oscuro."
-  },
-  {
-    "id": "zakiworld",
-    "nombre": "ZakiWorld",
-    "tipo": "logo",
-    "archivo": "logos/zakiworld.svg",
-    "fondo": "tinta",
-    "etiquetas": ["zakiworld", "marca"],
-    "nota": "La Z del servidor, en el verde menta de la marca."
-  }
-]
+  "fichas": []
+}
