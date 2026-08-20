@@ -282,7 +282,13 @@ a{ color: inherit; text-decoration: none; }
 .ventana__lienzo img{ max-width: 76%; max-height: 70%; display: block; }
 
 /* Los SVG van en linea para que hereden el color; la caja manda el tamano. */
-.vector{ display: grid; place-items: center; width: 100%; height: 100%; }
+.vector{
+  display: grid; place-items: center;
+  width: 100%; height: 100%;
+  /* Sin esto, la rejilla le da a la caja el minimo de su contenido y un logo
+     alto (arc mide 220x338) la estira hasta salirse de la baldosa. */
+  min-width: 0; min-height: 0;
+}
 .vector svg{ width: 62%; height: 62%; display: block; }
 
 /* los tres materiales sobre los que se juzga una ficha */
@@ -331,6 +337,10 @@ a{ color: inherit; text-decoration: none; }
 }
 .mesa__vista iframe{ width: 100%; height: 100%; min-height: 320px; border: 0; }
 .mesa__vista img{ max-width: 70%; max-height: 240px; }
+/* La caja del vector se ancla al panel. Dejada en el flujo, su alto sale del
+   propio dibujo — el porcentaje del SVG no tiene contra que medirse — y un logo
+   alto como el de Arc estira la fila y se sale por abajo. */
+.mesa__vista .vector{ position: absolute; inset: 0; }
 
 .mesa__lado{ display: flex; flex-direction: column; min-width: 0; }
 
@@ -371,7 +381,7 @@ a{ color: inherit; text-decoration: none; }
 }
 
 .mesa__acciones{
-  display: flex; align-items: center; gap: var(--u);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--u);
   padding: 0 16px 16px;
 }
 
@@ -384,12 +394,45 @@ a{ color: inherit; text-decoration: none; }
   transition: filter var(--dur-1) var(--ease);
 }
 .boton:hover{ filter: brightness(1.1); }
+.boton:disabled{ opacity: .6; cursor: default; }
 .boton--llano{
   color: var(--muted); background: transparent; border-color: var(--line-2);
 }
 .boton--llano:hover{ color: var(--text); background: var(--card); filter: none; }
 
-.mesa__fondos{ display: flex; gap: 5px; margin-left: auto; align-items: center; }
+/* ---------- la fila de ajustes: con que color y sobre que se mira ---------- */
+
+.mesa__ajustes{
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 10px calc(var(--u) * 2);
+  padding: 0 16px 12px;
+}
+.mesa__grupo{ display: flex; align-items: center; gap: var(--u); }
+.mesa__grupo--dcho{ margin-left: auto; }
+.mesa__ojo{
+  font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--dim);
+}
+
+.mesa__tintas{
+  display: flex; gap: 2px;
+  padding: 2px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+}
+.mesa__tinta{
+  padding: 5px 11px;
+  font-size: 11.5px; font-weight: 550;
+  color: var(--muted);
+  border-radius: 6px;
+  transition: color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+.mesa__tinta:hover{ color: var(--text); }
+.mesa__tinta[aria-pressed="true"]{ color: var(--accent-ink); background: var(--accent); }
+
+.mesa__fondos{ display: flex; gap: 5px; align-items: center; }
 .mesa__fondo{
   width: 22px; height: 22px;
   border: 1px solid var(--line-2);
@@ -594,3 +637,11 @@ body:not([data-dentro="si"]) .salir{ display: none; }
    la ficha, un punto por encima del fondo, igual que en la referencia. El
    material solo importa al abrirla para juzgarla. */
 .ventana--svgs .ventana__lienzo{ background: transparent; }
+
+/* ---------- logos: manda la marca, no la baldosa ----------
+   Un logo no es una forma cuadrada: arcoroc mide 504x71 y kitchenaid 181x15.
+   La caja se deja ancha y baja, y el propio SVG se centra dentro sin deformarse. */
+
+.ventana--logos .ventana__lienzo{ padding: 10px; }
+.ventana--logos .vector svg{ width: 86%; height: 76%; }
+.mesa--logos .mesa__vista .vector svg{ width: 74%; height: 66%; }

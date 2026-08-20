@@ -6,7 +6,7 @@
      #/interfaces/botones    un grupo dentro de la seccion
 */
 
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 
 /* El contenido no esta en este repo. Vive en el bucket R2 "animax" y lo sirve el
    worker previo pase, asi que ningun archivo tiene URL que valga sin token. */
@@ -204,7 +204,15 @@ function clase(archivo){
    la etiqueta lista para pegar, porque el archivo es binario. */
 async function copiable(p){
   const c = clase(p.archivo);
-  if(c === "vivo" || c === "vector") return fuente(p.archivo);
+  if(c === "vivo") return fuente(p.archivo);
+  if(c === "vector"){
+    const t = await fuente(p.archivo);
+    /* En su color de origen se copia el archivo tal cual, byte por byte. Solo
+       cuando se pide una tinta plana hay que reescribirlo. */
+    if(!p.tinta || p.tinta === "original") return t;
+    const svg = prepara(t, p.tinta);
+    return svg ? textoSvg(svg) : t;
+  }
   const suelto = p.archivo.split("/").pop();
   if(c === "imagen") return `<img src="${suelto}" alt="${p.nombre}">`;
   if(c === "audio") return `<audio src="${suelto}" preload="metadata" controls></audio>`;
@@ -388,7 +396,9 @@ async function vista(p, destino, mini){
        la baldosa, que es como se ven las formas en la galeria de referencia. */
     const caja = document.createElement("div");
     caja.className = "vector";
-    caja.innerHTML = desinfecta(await fuente(p.archivo));
+    const svg = prepara(await fuente(p.archivo), p.tinta || "original");
+    if(svg) caja.append(svg);
+    else caja.innerHTML = desinfecta(aisla(await fuente(p.archivo)));
     destino.replaceChildren(caja);
     return;
   }
@@ -421,6 +431,181 @@ function desinfecta(svg){
     .replace(/\s on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/(xlink:href|href)\s*=\s*("|')\s*javascript:[^"']*\2/gi, "")
     .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "");
+}
+
+/* ---------- la tinta: color de origen, blanco o negro ---------- */
+
+/* Un logo no guarda su color en atributos fill: lo guarda en un <style> con
+   clases dentro del propio archivo. Por eso no vale reemplazar texto — hay que
+   preguntarle al navegador el color YA resuelto de cada forma, y para eso el
+   SVG tiene que estar montado de verdad. Se monta fuera de la vista. */
+/* Illustrator numera igual en TODOS los archivos: la primera clase siempre es
+   .cls-1 y el primer recorte siempre #clippath. Con ocho logos en la misma
+   pagina eso no es un detalle — el ultimo que se pinta se lleva por delante el
+   color y el recorte de los demas, y medio logotipo desaparece. Antes de meter
+   nada en la pagina, cada archivo se lleva su propio sufijo. */
+let serie = 0;
+const MARCA = /__ax\d+(?![\w-])/g;
+
+function escapa(t){ return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+function aisla(texto){
+  const suf = "__ax" + (++serie);
+  let s = texto;
+
+  const ids = new Set();
+  s.replace(/\sid\s*=\s*"([^"]+)"/g, (t, v) => { ids.add(v); return t; });
+  ids.forEach(v => {
+    const e = escapa(v);
+    s = s.replace(new RegExp('(\\sid\\s*=\\s*")' + e + '(")', "g"), "$1" + v + suf + "$2");
+    s = s.replace(new RegExp('url\\((["\']?)#' + e + '\\1\\)', "g"), "url(#" + v + suf + ")");
+    s = s.replace(new RegExp('((?:xlink:)?href\\s*=\\s*")#' + e + '(")', "g"), "$1#" + v + suf + "$2");
+  });
+
+  /* Solo se renombran las clases que declara SU PROPIO <style>: tocar el resto
+     del archivo a ciegas seria meterse en los datos de los trazados. */
+  const clases = new Set();
+  const estilos = s.match(/<style[\s\S]*?<\/style>/gi) || [];
+  estilos.join("").replace(/\.([A-Za-z_][\w-]*)/g, (t, c) => { clases.add(c); return t; });
+  if(clases.size){
+    s = s.replace(/<style[\s\S]*?<\/style>/gi, bloque => {
+      clases.forEach(c => {
+        bloque = bloque.replace(new RegExp("\\." + escapa(c) + "(?![\\w-])", "g"), "." + c + suf);
+      });
+      return bloque;
+    });
+    s = s.replace(/(\sclass\s*=\s*")([^"]*)(")/g, (t, a, v, z) =>
+      a + v.split(/\s+/).filter(Boolean).map(c => clases.has(c) ? c + suf : c).join(" ") + z);
+  }
+
+  return s;
+}
+
+const TINTAS = { original: null, blanco: "#ffffff", negro: "#000000" };
+const LADO_PNG = 2048;   // lado largo del PNG que se copia o se baja
+
+let banco = null;
+function tablero(){
+  if(banco) return banco;
+  banco = document.createElement("div");
+  banco.setAttribute("aria-hidden", "true");
+  banco.style.cssText = "position:fixed;left:-99999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none";
+  document.body.append(banco);
+  return banco;
+}
+
+/* Las formas que de verdad se pintan. Lo que vive en defs, clipPath o mask no
+   es dibujo sino herramienta: tocarlo rompe el recorte. */
+function pintables(svg){
+  return [...svg.querySelectorAll("path,rect,circle,ellipse,polygon,polyline,line,text,tspan,use,image")]
+    .filter(el => !el.closest("defs,clipPath,mask,symbol,marker,pattern"));
+}
+
+/* Algunos logos traen su placa de fondo dentro del archivo — un rectangulo negro
+   a lienzo completo. Aplanada a un color, esa placa se traga el logo entero, asi
+   que se descartan las primeras formas que cubren mas de la mitad del lienzo y
+   se para en la primera que no. */
+function quitaPlaca(svg){
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  const area = vb ? vb.width * vb.height : 0;
+  if(!area) return;
+  for(const el of pintables(svg)){
+    let b;
+    try{ b = el.getBBox(); }catch(e){ return; }
+    if(b.width * b.height < area * .55) return;
+    el.remove();
+  }
+}
+
+/* Un solo color para todo lo que se pinta. Lo que estaba en none sigue en none:
+   dar color a un contorno apagado dibujaria un trazo que el logo no tiene. */
+function aplana(svg, color){
+  if(!svg.style.color) svg.style.color = color;
+  pintables(svg).forEach(el => {
+    const cs = getComputedStyle(el);
+    if(cs.fill && cs.fill !== "none") el.style.setProperty("fill", color, "important");
+    if(cs.stroke && cs.stroke !== "none") el.style.setProperty("stroke", color, "important");
+  });
+}
+
+/* Del texto del archivo a un <svg> vivo, ya en la tinta que toque. */
+function prepara(texto, tinta){
+  const caja = document.createElement("div");
+  caja.innerHTML = desinfecta(aisla(texto));
+  const svg = caja.querySelector("svg");
+  if(!svg) return null;
+  if(!TINTAS[tinta]) return svg;
+  tablero().append(svg);
+  try{
+    quitaPlaca(svg);
+    aplana(svg, TINTAS[tinta]);
+  }finally{
+    svg.remove();
+  }
+  return svg;
+}
+
+function medidas(svg){
+  const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+  const w = vb.length === 4 && vb[2] > 0 ? vb[2] : parseFloat(svg.getAttribute("width")) || 512;
+  const h = vb.length === 4 && vb[3] > 0 ? vb[3] : parseFloat(svg.getAttribute("height")) || 512;
+  return [w, h];
+}
+
+function textoSvg(svg){
+  const c = svg.cloneNode(true);
+  c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  /* El sufijo solo hace falta mientras el SVG comparte pagina con otros. Lo que
+     se baja o se copia sale con los nombres que traia. */
+  return '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + new XMLSerializer().serializeToString(c).replace(MARCA, "");
+}
+
+/* El PNG se dibuja aqui, en el navegador, no en el worker: asi sale en la misma
+   tinta que se esta viendo y con el fondo transparente. Manda el lado largo. */
+async function pngDe(svg, color){
+  const [w, h] = medidas(svg);
+  const e = LADO_PNG / Math.max(w, h);
+  const W = Math.max(1, Math.round(w * e));
+  const H = Math.max(1, Math.round(h * e));
+
+  const c = svg.cloneNode(true);
+  c.setAttribute("width", W);
+  c.setAttribute("height", H);
+  /* Dentro de un <img> no hay pagina de la que heredar, asi que un
+     fill="currentColor" se quedaria en negro. Se le pasa el color que se ve. */
+  if(!c.style.color && color) c.style.color = color;
+
+  const url = URL.createObjectURL(new Blob([textoSvg(c)], { type: "image/svg+xml;charset=utf-8" }));
+  try{
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const lienzo = document.createElement("canvas");
+    lienzo.width = W;
+    lienzo.height = H;
+    lienzo.getContext("2d").drawImage(img, 0, 0, W, H);
+    const blob = await new Promise(ok => lienzo.toBlob(ok, "image/png"));
+    if(!blob) throw new Error("el lienzo no dio PNG");
+    return blob;
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+
+function baja(blob, nombre){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* arc-blanco.png: la tinta va en el nombre para no pisar al original. */
+function nombreDe(p, ext){
+  const base = p.archivo.split("/").pop().replace(/\.[^.]+$/, "");
+  const t = p.tinta && p.tinta !== "original" ? "-" + p.tinta : "";
+  return base + t + "." + ext;
 }
 
 /* La envoltura NO forma parte de lo que se copia: solo centra la pieza y le da tipografia. */
@@ -628,40 +813,131 @@ function mesa(p){
   copiable(p).then(t => { pre.textContent = t; })
              .catch(() => { pre.textContent = "No se pudo leer " + p.archivo; });
 
+  const c = clase(p.archivo);
+  const esVector = c === "vector";
+  if(esVector && !p.tinta) p.tinta = "original";
+
+  /* Cambiar la tinta o el fondo tiene que mover LAS DOS cosas, la vista y el
+     panel de codigo: la regla de la casa es que lo que ves es lo que copias. */
+  const refresca = () => {
+    vista(p, panel, false);
+    pre.textContent = "Leyendo " + p.archivo + "…";
+    copiable(p).then(t => { pre.textContent = t; })
+               .catch(() => { pre.textContent = "No se pudo leer " + p.archivo; });
+  };
+
   const acciones = document.createElement("div");
   acciones.className = "mesa__acciones";
 
-  const copiar = document.createElement("button");
-  copiar.className = "boton";
-  copiar.type = "button";
-  const rotulo = clase(p.archivo) === "audio" || clase(p.archivo) === "imagen"
-    ? "Copiar la etiqueta" : "Copiar codigo";
-  copiar.textContent = rotulo;
-  copiar.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(await copiable(p));
-    copiar.textContent = "Copiado";
-    copiar.dataset.hecho = "si";
-    setTimeout(() => { copiar.textContent = rotulo; delete copiar.dataset.hecho; }, 1400);
-  });
+  /* Un boton que dice en su propio rotulo si le salio bien. */
+  const accion = (rotulo, hecho, llano, hacer) => {
+    const b = document.createElement("button");
+    b.className = "boton" + (llano ? " boton--llano" : "");
+    b.type = "button";
+    b.textContent = rotulo;
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try{
+        await hacer();
+        b.textContent = hecho;
+        b.dataset.hecho = "si";
+      }catch(e){
+        b.textContent = "No se pudo";
+      }finally{
+        b.disabled = false;
+        setTimeout(() => { b.textContent = rotulo; delete b.dataset.hecho; }, 1500);
+      }
+    });
+    return b;
+  };
 
-  const abrir = document.createElement("a");
-  abrir.className = "boton boton--llano";
-  abrir.href = urlDe(p.archivo);
-  abrir.target = "_blank";
-  abrir.rel = "noopener";
-  abrir.textContent = "Abrir el archivo";
+  if(esVector){
+    /* El SVG se vuelve a preparar en cada gesto: cuesta poco y evita quedarse
+       con una copia de una tinta que ya no es la que esta puesta. */
+    const ahora = async () => {
+      const svg = prepara(await fuente(p.archivo), p.tinta);
+      if(!svg) throw new Error("el archivo no trae un <svg>");
+      return svg;
+    };
+    const color = () => getComputedStyle(panel).color;
 
-  acciones.append(copiar, abrir);
+    acciones.append(
+      accion("Copiar SVG", "Copiado", false, async () => {
+        await navigator.clipboard.writeText(await copiable(p));
+      }),
+      accion("Copiar PNG", "Copiado", false, async () => {
+        const blob = await pngDe(await ahora(), color());
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      }),
+      accion("Descargar SVG", "Bajado", true, async () => {
+        baja(new Blob([await copiable(p)], { type: "image/svg+xml;charset=utf-8" }), nombreDe(p, "svg"));
+      }),
+      accion("Descargar PNG", "Bajado", true, async () => {
+        baja(await pngDe(await ahora(), color()), nombreDe(p, "png"));
+      })
+    );
+  }else{
+    const rotulo = c === "audio" || c === "imagen" ? "Copiar la etiqueta" : "Copiar codigo";
+    acciones.append(accion(rotulo, "Copiado", false, async () => {
+      await navigator.clipboard.writeText(await copiable(p));
+    }));
 
-  if(clase(p.archivo) === "audio" || clase(p.archivo) === "imagen"){
-    const bajar = document.createElement("a");
-    bajar.className = "boton boton--llano";
-    bajar.href = urlDe(p.archivo, true);
-    bajar.textContent = "Descargar";
-    acciones.append(bajar);
+    const abrir = document.createElement("a");
+    abrir.className = "boton boton--llano";
+    abrir.href = urlDe(p.archivo);
+    abrir.target = "_blank";
+    abrir.rel = "noopener";
+    abrir.textContent = "Abrir el archivo";
+    acciones.append(abrir);
+
+    if(c === "audio" || c === "imagen"){
+      const bajar = document.createElement("a");
+      bajar.className = "boton boton--llano";
+      bajar.href = urlDe(p.archivo, true);
+      bajar.textContent = "Descargar";
+      acciones.append(bajar);
+    }
   }
 
-  if(clase(p.archivo) !== "audio"){
+  /* --- la fila de ajustes: con que color y sobre que material se mira --- */
+
+  const ojo = t => {
+    const e = document.createElement("span");
+    e.className = "mesa__ojo";
+    e.textContent = t;
+    return e;
+  };
+  const grupo = (etiqueta, hijo, dcho) => {
+    const g = document.createElement("div");
+    g.className = "mesa__grupo" + (dcho ? " mesa__grupo--dcho" : "");
+    g.append(ojo(etiqueta), hijo);
+    return g;
+  };
+
+  const ajustes = document.createElement("div");
+  ajustes.className = "mesa__ajustes";
+
+  if(esVector){
+    const tintas = document.createElement("div");
+    tintas.className = "mesa__tintas";
+    [["original", "De origen"], ["blanco", "Blanco"], ["negro", "Negro"]].forEach(([clave, rot]) => {
+      const b = document.createElement("button");
+      b.className = "mesa__tinta";
+      b.type = "button";
+      b.textContent = rot;
+      b.setAttribute("aria-pressed", String(p.tinta === clave));
+      b.addEventListener("click", () => {
+        if(p.tinta === clave) return;
+        p.tinta = clave;
+        [...tintas.children].forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+        refresca();
+      });
+      tintas.append(b);
+    });
+    ajustes.append(grupo("Color", tintas));
+  }
+
+  if(c !== "audio"){
     const fondos = document.createElement("div");
     fondos.className = "mesa__fondos";
     [["carta", "#7e7b73"], ["papel", "#efebe1"], ["tinta", "#17150f"]].forEach(([clave, color]) => {
@@ -673,17 +949,20 @@ function mesa(p){
       s.setAttribute("aria-label", "Ver sobre " + clave);
       s.setAttribute("aria-pressed", String((p.fondo || "carta") === clave));
       s.addEventListener("click", () => {
-        panel.className = "mesa__vista fondo-" + clave;
+        if(p.fondo === clave) return;
         p.fondo = clave;
+        panel.className = "mesa__vista fondo-" + clave;
         vista(p, panel, false);
         [...fondos.children].forEach(x => x.setAttribute("aria-pressed", String(x === s)));
       });
       fondos.append(s);
     });
-    acciones.append(fondos);
+    ajustes.append(grupo("Fondo", fondos, true));
   }
 
-  lado.append(cabeza, nota, pre, acciones);
+  lado.append(cabeza, nota, pre);
+  if(ajustes.children.length) lado.append(ajustes);
+  lado.append(acciones);
   m.append(panel, lado);
   return m;
 }

@@ -126,6 +126,39 @@ Animax habla el idioma de IRIS, MOOVIN y Naviris:
   que se juzga una ficha, y viven dentro del visor.
 - Los scroll son siempre los nuestros. Sin emojis y sin versalitas.
 
+## Un SVG se lleva de cuatro maneras
+
+Cualquier ficha `.svg` — una forma o un logo — abre con cuatro botones: **Copiar SVG**,
+**Copiar PNG**, **Descargar SVG** y **Descargar PNG**. El PNG se dibuja en el navegador,
+no en el worker: sale con **fondo transparente** y **2048 px de lado largo**.
+
+Encima esta el interruptor de **color**, con tres posiciones:
+
+| | que hace |
+|---|---|
+| **De origen** | el archivo tal cual, byte por byte |
+| **Blanco** | todo lo que se pinta, a `#ffffff` |
+| **Negro** | todo lo que se pinta, a `#000000` |
+
+Lo que se copia y lo que se baja siempre es lo que se esta viendo, y el nombre lo dice:
+`arc-blanco.png`. Tres detalles que valen la pena saber:
+
+- **Lo que estaba en `none` sigue en `none`.** Dar color a un contorno apagado dibujaria
+  un trazo que el logo no tiene.
+- **La placa de fondo se quita.** Cristal d'Arques y Chef & Sommelier traen su
+  rectangulo negro dentro del archivo; aplanado a un color se tragaria el logo entero,
+  asi que en blanco o en negro se descartan las primeras formas que cubren mas de la
+  mitad del lienzo.
+- **Cada archivo se aisla antes de entrar en la pagina.** Illustrator numera igual en
+  todos: la primera clase siempre es `.cls-1` y el primer recorte siempre `#clippath`.
+  Con ocho logos a la vez, el ultimo se llevaba por delante el color y el recorte de los
+  demas. Cada uno entra con su propio sufijo, que se retira al copiar o al bajar.
+
+Una tipografia que no este instalada **no** se convierte en trazados: si el SVG trae
+texto vivo, se vera con una de repuesto. Es el caso de `logos/arc.svg`, que lleva la
+palabra "arc" en Trade Gothic Next LT Pro. La salida es pedir el archivo reexportado
+con el texto convertido a curvas.
+
 ## Derechos
 
 Licencia **propietaria**: ver `LICENSE`. Cubre por igual el
@@ -138,8 +171,9 @@ poder usarlo.
 **Ojo con lo que no es nuestro.** La biblioteca guarda tambien material de terceros
 como herramienta de trabajo, y ese material queda fuera de la licencia: sigue siendo
 de sus autores. **Anota siempre el origen en la `nota` de la ficha.** Hoy es el caso
-de las 72 formas de `svgs/`, que son de shapes.gallery (Mo), y de cualquier marca
-ajena que acabe en `logos/` (grupo `terceros`).
+de las 72 formas de `svgs/`, que son de shapes.gallery (Mo), y de los ocho logos del
+grupo `terceros` (Arc, Arcoroc, Cristal d'Arques, Chef & Sommelier, KitchenAid, Mychef,
+Roichen y Wolfen), que son de sus titulares.
 
 ## Atajos
 
