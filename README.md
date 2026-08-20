@@ -57,7 +57,7 @@ Con `subir.ps1`. Sube el archivo al bucket y escribe su ficha de una vez:
 ```powershell
 $env:ANIMAX_TOKEN = "..."        # una vez por sesion
 
-.\subir.ps1 -Archivo .	ema.mp3 -Seccion tunes -Grupo temas -Nombre "Tema principal"
+.\subir.ps1 -Archivo .\tema.mp3 -Seccion tunes -Grupo temas -Nombre "Tema principal"
 .\subir.ps1 -Archivo .\onda.svg -Seccion svgs -Grupo separadores -Nombre "Onda doble" -Fondo papel
 .\subir.ps1 -Listar              # que hay en el bucket
 ```
