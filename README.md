@@ -63,6 +63,10 @@ antes de que entre al bucket. El contenido de verdad nunca se sirve asi.
 
 Con `subir.ps1`. Sube el archivo al bucket y escribe su ficha de una vez:
 
+El token de administracion se busca en tres sitios, por este orden: la variable
+`$env:ANIMAX_TOKEN`, el archivo `.animax-token` en la raiz (que `.gitignore` bloquea)
+y, si no hay ninguno, te lo pide por teclado.
+
 ```powershell
 $env:ANIMAX_TOKEN = "..."        # una vez por sesion
 

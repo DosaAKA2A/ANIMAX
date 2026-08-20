@@ -11,3 +11,4 @@ tunes/*
 !logos/.gitkeep
 !tunes/.gitkeep
 catalogo.local.json
+.animax-token

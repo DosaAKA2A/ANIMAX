@@ -42,6 +42,13 @@ $TROZO = 90MB   # cada peticion a un Worker admite ~100 MB de cuerpo
 
 function Get-Token {
   if ($env:ANIMAX_TOKEN) { return $env:ANIMAX_TOKEN.Trim() }
+  # .animax-token: el token en un archivo local que .gitignore bloquea. Evita
+  # tener que reescribirlo en cada sesion y que se quede en el historial.
+  $f = Join-Path $PSScriptRoot ".animax-token"
+  if (Test-Path -LiteralPath $f) {
+    $v = (Get-Content -LiteralPath $f -Raw).Trim()
+    if ($v) { return $v }
+  }
   $s = Read-Host "Token de administracion de Animax" -AsSecureString
   $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($s)
   try { return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b).Trim() }
