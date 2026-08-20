@@ -195,8 +195,9 @@ grupo `terceros` (Arc, Arcoroc, Cristal d'Arques, Chef & Sommelier, KitchenAid, 
 Roichen y Wolfen), que son de sus titulares.
 
 Con el codigo pasa igual. Las piezas de `interfaces/` estan reescritas con clases
-propias, pero **la tecnica no siempre es nuestra** y su ficha lo dice: `bento-flip` es de
-GreenSock y `liquid-glass` de toi-nagasawa.
+propias, pero **la tecnica no siempre es nuestra** y su ficha lo dice: `bento-flip` es de la
+cuenta de GreenSock, `rejilla-lupa` de creativeocean, `liquid-glass` de toi-nagasawa y
+`agua-en-el-texto` de Margarita-the-solid.
 
 ## Atajos
 
