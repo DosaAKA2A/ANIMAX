@@ -6,7 +6,7 @@
      #/interfaces/botones    un grupo dentro de la seccion
 */
 
-const VERSION = "0.6.0";
+const VERSION = "0.7.0";
 
 /* El contenido no esta en este repo. Vive en el bucket R2 "animax" y lo sirve el
    worker previo pase, asi que ningun archivo tiene URL que valga sin token. */
@@ -616,6 +616,9 @@ function envoltura(html, fondo, mini){
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Sin border-box el relleno se SUMA al 100% de alto: una pieza que ocupa
+     todo el alto se saldria por abajo, recortada. */
+  *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%;margin:0;overflow:hidden}
   body{display:grid;place-items:center;padding:${mini ? 14 : 28}px;
        background:${suelo};color:${color};
@@ -775,18 +778,29 @@ function alternar(p, caja){
   finDeFila.after(mesa(p));
 }
 
-function mesa(p){
-  const m = document.createElement("section");
-  m.className = "mesa mesa--" + (p.seccion || "otro");
-  m.setAttribute("aria-label", p.nombre);
+/* Un boton que dice en su propio rotulo si le salio bien. */
+function accion(rotulo, hecho, llano, hacer){
+  const b = document.createElement("button");
+  b.className = "boton" + (llano ? " boton--llano" : "");
+  b.type = "button";
+  b.textContent = rotulo;
+  b.addEventListener("click", async () => {
+    b.disabled = true;
+    try{
+      await hacer();
+      b.textContent = hecho;
+      b.dataset.hecho = "si";
+    }catch(e){
+      b.textContent = "No se pudo";
+    }finally{
+      b.disabled = false;
+      setTimeout(() => { b.textContent = rotulo; delete b.dataset.hecho; }, 1500);
+    }
+  });
+  return b;
+}
 
-  const panel = document.createElement("div");
-  panel.className = "mesa__vista fondo-" + (p.fondo || "carta");
-  vista(p, panel, false);
-
-  const lado = document.createElement("div");
-  lado.className = "mesa__lado";
-
+function cabezaDe(p){
   const cabeza = document.createElement("div");
   cabeza.className = "mesa__cabeza";
   const nom = document.createElement("h2");
@@ -801,10 +815,72 @@ function mesa(p){
     etis.append(e);
   });
   cabeza.append(nom, etis);
+  return cabeza;
+}
 
+function notaDe(p){
   const nota = document.createElement("p");
   nota.className = "mesa__nota";
   nota.textContent = p.nota || "";
+  return nota;
+}
+
+function ojo(t){
+  const e = document.createElement("span");
+  e.className = "mesa__ojo";
+  e.textContent = t;
+  return e;
+}
+
+function grupo(etiqueta, hijo, dcho){
+  const g = document.createElement("div");
+  g.className = "mesa__grupo" + (dcho ? " mesa__grupo--dcho" : "");
+  g.append(ojo(etiqueta), hijo);
+  return g;
+}
+
+/* Los tres materiales sobre los que se juzga una ficha. Repintan la vista. */
+function fondosDe(p, panel){
+  const fondos = document.createElement("div");
+  fondos.className = "mesa__fondos";
+  [["carta", "#7e7b73"], ["papel", "#efebe1"], ["tinta", "#17150f"]].forEach(([clave, color]) => {
+    const s = document.createElement("button");
+    s.className = "mesa__fondo";
+    s.type = "button";
+    s.style.background = color;
+    s.title = "Ver sobre " + clave;
+    s.setAttribute("aria-label", "Ver sobre " + clave);
+    s.setAttribute("aria-pressed", String((p.fondo || "carta") === clave));
+    s.addEventListener("click", () => {
+      if(p.fondo === clave) return;
+      p.fondo = clave;
+      panel.className = "mesa__vista fondo-" + clave;
+      vista(p, panel, false);
+      [...fondos.children].forEach(x => x.setAttribute("aria-pressed", String(x === s)));
+    });
+    fondos.append(s);
+  });
+  return fondos;
+}
+
+function mesa(p){
+  const m = document.createElement("section");
+  m.className = "mesa mesa--" + (p.seccion || "otro");
+  m.setAttribute("aria-label", p.nombre);
+
+  /* Una pieza de interfaz se mira como en un cuaderno de codigo: las tres
+     lenguas arriba, una al lado de otra, y la pieza viva a lo ancho debajo. */
+  if(clase(p.archivo) === "vivo") return cuaderno(p, m);
+
+  const panel = document.createElement("div");
+  panel.className = "mesa__vista fondo-" + (p.fondo || "carta");
+  vista(p, panel, false);
+
+  const lado = document.createElement("div");
+  lado.className = "mesa__lado";
+
+  const cabeza = cabezaDe(p);
+  const nota = notaDe(p);
 
   const pre = document.createElement("pre");
   pre.className = "mesa__codigo";
@@ -828,28 +904,6 @@ function mesa(p){
 
   const acciones = document.createElement("div");
   acciones.className = "mesa__acciones";
-
-  /* Un boton que dice en su propio rotulo si le salio bien. */
-  const accion = (rotulo, hecho, llano, hacer) => {
-    const b = document.createElement("button");
-    b.className = "boton" + (llano ? " boton--llano" : "");
-    b.type = "button";
-    b.textContent = rotulo;
-    b.addEventListener("click", async () => {
-      b.disabled = true;
-      try{
-        await hacer();
-        b.textContent = hecho;
-        b.dataset.hecho = "si";
-      }catch(e){
-        b.textContent = "No se pudo";
-      }finally{
-        b.disabled = false;
-        setTimeout(() => { b.textContent = rotulo; delete b.dataset.hecho; }, 1500);
-      }
-    });
-    return b;
-  };
 
   if(esVector){
     /* El SVG se vuelve a preparar en cada gesto: cuesta poco y evita quedarse
@@ -901,19 +955,6 @@ function mesa(p){
 
   /* --- la fila de ajustes: con que color y sobre que material se mira --- */
 
-  const ojo = t => {
-    const e = document.createElement("span");
-    e.className = "mesa__ojo";
-    e.textContent = t;
-    return e;
-  };
-  const grupo = (etiqueta, hijo, dcho) => {
-    const g = document.createElement("div");
-    g.className = "mesa__grupo" + (dcho ? " mesa__grupo--dcho" : "");
-    g.append(ojo(etiqueta), hijo);
-    return g;
-  };
-
   const ajustes = document.createElement("div");
   ajustes.className = "mesa__ajustes";
 
@@ -937,34 +978,226 @@ function mesa(p){
     ajustes.append(grupo("Color", tintas));
   }
 
-  if(c !== "audio"){
-    const fondos = document.createElement("div");
-    fondos.className = "mesa__fondos";
-    [["carta", "#7e7b73"], ["papel", "#efebe1"], ["tinta", "#17150f"]].forEach(([clave, color]) => {
-      const s = document.createElement("button");
-      s.className = "mesa__fondo";
-      s.type = "button";
-      s.style.background = color;
-      s.title = "Ver sobre " + clave;
-      s.setAttribute("aria-label", "Ver sobre " + clave);
-      s.setAttribute("aria-pressed", String((p.fondo || "carta") === clave));
-      s.addEventListener("click", () => {
-        if(p.fondo === clave) return;
-        p.fondo = clave;
-        panel.className = "mesa__vista fondo-" + clave;
-        vista(p, panel, false);
-        [...fondos.children].forEach(x => x.setAttribute("aria-pressed", String(x === s)));
-      });
-      fondos.append(s);
-    });
-    ajustes.append(grupo("Fondo", fondos, true));
-  }
+  if(c !== "audio") ajustes.append(grupo("Fondo", fondosDe(p, panel), true));
 
   lado.append(cabeza, nota, pre);
   if(ajustes.children.length) lado.append(ajustes);
   lado.append(acciones);
   m.append(panel, lado);
   return m;
+}
+
+/* =========================================================
+   El cuaderno: como se mira una pieza de interfaz
+
+   Un archivo suelto trae dentro las tres lenguas. Aqui se separan para poder
+   leerlas — HTML, CSS y JS, cada una en su hoja — y debajo se pinta la pieza
+   viva a todo lo ancho, como en un cuaderno de codigo.
+
+   Separar es SOLO para mirar. Lo que se copia entero sigue siendo el archivo
+   tal cual, que es la regla de la casa: lo que ves es lo que copias. Cada hoja
+   ademas se puede copiar suelta, para llevarse solo el CSS o solo el JS.
+   ========================================================= */
+
+function cuaderno(p, m){
+  m.classList.add("mesa--cuaderno");
+
+  const panel = document.createElement("div");
+  panel.className = "mesa__vista fondo-" + (p.fondo || "carta");
+  vista(p, panel, false);
+
+  const hojas = document.createElement("div");
+  hojas.className = "cuaderno";
+  const leyendo = document.createElement("p");
+  leyendo.className = "cuaderno__leyendo";
+  leyendo.textContent = "Leyendo " + p.archivo + "…";
+  hojas.append(leyendo);
+
+  const externos = document.createElement("p");
+  externos.className = "cuaderno__externos";
+
+  fuente(p.archivo).then(t => {
+    const trozos = partes(t);
+    const hs = [["html", "HTML"], ["css", "CSS"], ["js", "JS"]]
+      .filter(([lengua]) => trozos[lengua])
+      .map(([lengua, rotulo]) => hoja(rotulo, lengua, trozos[lengua]));
+    hojas.replaceChildren(...hs);
+
+    if(trozos.externos.length){
+      externos.append(ojo("Carga aparte"));
+      trozos.externos.forEach(u => {
+        const a = document.createElement("a");
+        a.className = "cuaderno__externo";
+        a.href = u;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = u;
+        externos.append(a);
+      });
+    }
+  }).catch(() => {
+    leyendo.textContent = "No se pudo leer " + p.archivo;
+  });
+
+  const acciones = document.createElement("div");
+  acciones.className = "mesa__acciones";
+  acciones.append(accion("Copiar la pieza entera", "Copiado", false, async () => {
+    await navigator.clipboard.writeText(await copiable(p));
+  }));
+  const abrir = document.createElement("a");
+  abrir.className = "boton boton--llano";
+  abrir.href = urlDe(p.archivo);
+  abrir.target = "_blank";
+  abrir.rel = "noopener";
+  abrir.textContent = "Abrir el archivo";
+  acciones.append(abrir);
+
+  const ajustes = document.createElement("div");
+  ajustes.className = "mesa__ajustes";
+  ajustes.append(grupo("Fondo", fondosDe(p, panel), true));
+
+  m.append(cabezaDe(p), notaDe(p), hojas, externos, panel, ajustes, acciones);
+  return m;
+}
+
+function hoja(rotulo, lengua, codigo){
+  const h = document.createElement("article");
+  h.className = "cuaderno__hoja";
+
+  const cab = document.createElement("header");
+  cab.className = "cuaderno__rotulo";
+  const r = document.createElement("span");
+  r.className = "cuaderno__lengua";
+  r.textContent = rotulo;
+  const cuantas = document.createElement("span");
+  cuantas.className = "cuaderno__lineas";
+  const n = codigo.split("\n").length;
+  cuantas.textContent = n + (n === 1 ? " linea" : " lineas");
+  const cop = document.createElement("button");
+  cop.className = "cuaderno__copiar";
+  cop.type = "button";
+  cop.textContent = "Copiar";
+  cop.setAttribute("aria-label", "Copiar el " + rotulo);
+  cop.addEventListener("click", async () => {
+    try{
+      await navigator.clipboard.writeText(codigo);
+      cop.textContent = "Copiado";
+      cop.dataset.hecho = "si";
+    }catch(e){
+      cop.textContent = "No se pudo";
+    }
+    setTimeout(() => { cop.textContent = "Copiar"; delete cop.dataset.hecho; }, 1300);
+  });
+  cab.append(r, cuantas, cop);
+
+  const pre = document.createElement("pre");
+  pre.className = "cuaderno__codigo";
+  pre.tabIndex = 0;
+  const code = document.createElement("code");
+  code.innerHTML = tinta(codigo, lengua);
+  pre.append(code);
+
+  h.append(cab, pre);
+  return h;
+}
+
+/* Deja el trozo pegado al margen: sin lineas en blanco arriba y abajo, y sin
+   la sangria comun que traia por estar metido dentro de un <style>. */
+function desangra(t){
+  const lineas = String(t).replace(/\t/g, "  ").split("\n");
+  while(lineas.length && !lineas[0].trim()) lineas.shift();
+  while(lineas.length && !lineas[lineas.length - 1].trim()) lineas.pop();
+  if(!lineas.length) return "";
+  const comun = lineas.filter(l => l.trim())
+    .reduce((min, l) => Math.min(min, l.match(/^ */)[0].length), Infinity);
+  return lineas.map(l => l.slice(comun)).join("\n");
+}
+
+/* Parte el archivo en las tres lenguas. Los <script src> y los <link href> no
+   son codigo de la pieza: son lo que carga aparte, y se listan como tal. */
+function partes(texto){
+  let resto = String(texto);
+  const css = [], js = [], externos = [];
+
+  resto = resto.replace(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi, (todo, attrs, dentro) => {
+    const src = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(attrs);
+    if(src) externos.push(src[1] || src[2]);
+    else if(dentro.trim()) js.push(dentro);
+    return "";
+  });
+
+  resto = resto.replace(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi, (todo, dentro) => {
+    if(dentro.trim()) css.push(dentro);
+    return "";
+  });
+
+  resto = resto.replace(/<link\b[^>]*>/gi, todo => {
+    const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(todo);
+    if(href && /stylesheet/i.test(todo)) externos.push(href[1] || href[2]);
+    return "";
+  });
+
+  /* Si la pieza es un documento entero, lo que se ve es su cuerpo. */
+  const cuerpo = /<body\b[^>]*>([\s\S]*)<\/body\s*>/i.exec(resto);
+  if(cuerpo) resto = cuerpo[1];
+  resto = resto
+    .replace(/<!doctype[^>]*>/gi, "")
+    .replace(/<head\b[\s\S]*?<\/head\s*>/gi, "")
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, "");
+
+  return {
+    html: desangra(resto),
+    css: desangra(css.join("\n\n")),
+    js: desangra(js.join("\n\n")),
+    externos
+  };
+}
+
+/* ---------- el color del codigo ----------
+
+   Un solo acento, como en el resto de la casa: el ambar es para lo que se lee
+   como valor (cadenas, colores, medidas), el blanco para lo que nombra
+   (etiquetas, propiedades, palabras del lenguaje) y el gris apagado para los
+   comentarios. Nada de arcoiris: aqui el color significa una cosa. */
+
+const LENGUAS = {
+  html: [
+    ["com", /<!--[\s\S]*?-->/],
+    ["txt", /"[^"]*"|'[^']*'/],
+    ["nom", /<\/?[a-zA-Z][\w:-]*|\/?>/]
+  ],
+  css: [
+    ["com", /\/\*[\s\S]*?\*\//],
+    ["txt", /"[^"]*"|'[^']*'/],
+    ["nom", /@[\w-]+|[.#][A-Za-z][\w-]*|--[\w-]+|\b[a-z-]+(?=\s*:)/],
+    ["txt", /#[0-9a-fA-F]{3,8}\b|\b\d+(?:\.\d+)?(?:px|%|em|rem|vh|vw|fr|s|ms|deg)?\b/]
+  ],
+  js: [
+    ["com", /\/\/[^\n]*|\/\*[\s\S]*?\*\//],
+    ["txt", /"[^"]*"|'[^']*'|`[^`]*`/],
+    ["nom", /\b(?:const|let|var|function|return|if|else|for|of|in|new|class|typeof|null|true|false|async|await|delete|this)\b|=>/],
+    ["txt", /\b\d+(?:\.\d+)?\b/]
+  ]
+};
+
+const escapaHtml = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function tinta(codigo, lengua){
+  const reglas = LENGUAS[lengua];
+  if(!reglas) return escapaHtml(codigo);
+
+  /* Todas las reglas en una sola pasada: la primera que casa manda, por eso
+     los comentarios van delante — dentro de uno no hay nada que pintar. */
+  const re = new RegExp(reglas.map(([, r]) => "(" + r.source + ")").join("|"), "g");
+  let salida = "", desde = 0, m;
+  while((m = re.exec(codigo)) !== null){
+    if(m[0] === ""){ re.lastIndex++; continue; }
+    const i = m.slice(1).findIndex(x => x !== undefined);
+    salida += escapaHtml(codigo.slice(desde, m.index))
+            + '<span class="tk-' + reglas[i][0] + '">' + escapaHtml(m[0]) + "</span>";
+    desde = m.index + m[0].length;
+  }
+  return salida + escapaHtml(codigo.slice(desde));
 }
 
 /* ---------- controles ---------- */

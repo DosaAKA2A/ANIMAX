@@ -79,14 +79,19 @@ a{ color: inherit; text-decoration: none; }
 :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Los scroll son siempre los nuestros, nunca los del sistema. */
-.mesa__codigo{ scrollbar-width: thin; scrollbar-color: #2c2c32 transparent; }
-.mesa__codigo::-webkit-scrollbar{ width: 10px; height: 10px; }
-.mesa__codigo::-webkit-scrollbar-track{ background: transparent; }
-.mesa__codigo::-webkit-scrollbar-thumb{
+.mesa__codigo,
+.cuaderno__codigo{ scrollbar-width: thin; scrollbar-color: #2c2c32 transparent; }
+.mesa__codigo::-webkit-scrollbar,
+.cuaderno__codigo::-webkit-scrollbar{ width: 10px; height: 10px; }
+.mesa__codigo::-webkit-scrollbar-track,
+.cuaderno__codigo::-webkit-scrollbar-track{ background: transparent; }
+.mesa__codigo::-webkit-scrollbar-thumb,
+.cuaderno__codigo::-webkit-scrollbar-thumb{
   background: #2c2c32; border-radius: var(--r-full);
   border: 3px solid transparent; background-clip: padding-box;
 }
-.mesa__codigo::-webkit-scrollbar-thumb:hover{ background: #3a3a42; background-clip: padding-box; }
+.mesa__codigo::-webkit-scrollbar-thumb:hover,
+.cuaderno__codigo::-webkit-scrollbar-thumb:hover{ background: #3a3a42; background-clip: padding-box; }
 
 /* ---------- barra ---------- */
 
@@ -441,6 +446,93 @@ a{ color: inherit; text-decoration: none; }
 }
 .mesa__fondo[aria-pressed="true"]{ outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ---------- el cuaderno: la mesa de una pieza de interfaz ----------
+
+   Reparto de cuaderno de codigo: las tres lenguas arriba, una al lado de
+   otra, y la pieza viva a todo lo ancho debajo. Se lee en ese orden — que
+   dice el archivo y luego que hace.  */
+
+.mesa--cuaderno{ grid-template-columns: 1fr; }
+
+.cuaderno{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 1px;
+  margin-top: 14px;
+  background: var(--line);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.cuaderno__leyendo{
+  padding: 18px 16px;
+  font-size: 12.5px; color: var(--dim);
+  background: var(--bg);
+}
+
+.cuaderno__hoja{ display: flex; flex-direction: column; min-width: 0; background: var(--bg); }
+
+.cuaderno__rotulo{
+  display: flex; align-items: center; gap: var(--u);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.cuaderno__lengua{
+  font-family: var(--mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--text);
+}
+.cuaderno__lineas{ font-family: var(--mono); font-size: 9.5px; color: var(--dim); }
+.cuaderno__copiar{
+  margin-left: auto;
+  padding: 3px 9px;
+  font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--line-2); border-radius: var(--r-full);
+  transition: color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.cuaderno__copiar:hover{ color: var(--text); }
+.cuaderno__copiar[data-hecho="si"]{
+  color: var(--accent-ink); background: var(--accent); border-color: var(--accent);
+}
+
+.cuaderno__codigo{
+  flex: 1 1 auto;
+  max-height: 300px; overflow: auto;
+  padding: 12px 14px;
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.6;
+  white-space: pre;
+  color: var(--muted);
+}
+
+/* El color aqui significa una cosa: ambar lo que es valor, blanco lo que
+   nombra, y gris apagado lo que es comentario. Nada de arcoiris. */
+.tk-com{ color: var(--dim); font-style: italic; }
+.tk-txt{ color: var(--accent); }
+.tk-nom{ color: var(--text); }
+
+.cuaderno__externos{
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--u);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.cuaderno__externos:empty{ display: none; }
+.cuaderno__externo{
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  overflow-wrap: anywhere;
+}
+.cuaderno__externo:hover{ color: var(--accent); }
+
+.mesa--cuaderno .mesa__vista{
+  min-height: 460px;
+  border-right: 0;
+}
+.mesa--cuaderno .mesa__ajustes{ padding-top: 14px; }
+
 /* ---------- tunes ---------- */
 
 .tune-marca{
@@ -521,10 +613,16 @@ a{ color: inherit; text-decoration: none; }
 .pie__dcho{ margin-left: auto; }
 .pie__ver{ font-family: var(--mono); }
 
+@media (max-width: 1100px){
+  /* Tres hojas de codigo lado a lado dejan de leerse: se apilan. */
+  .cuaderno{ grid-auto-flow: row; }
+}
+
 @media (max-width: 760px){
   .barra__cuenta{ display: none; }
   .mesa{ grid-template-columns: 1fr; }
   .mesa__vista{ border-right: 0; border-bottom: 1px solid var(--line); }
+  .mesa--cuaderno .mesa__vista{ min-height: 320px; }
 }
 
 @media (prefers-reduced-motion: reduce){

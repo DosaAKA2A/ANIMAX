@@ -11,7 +11,8 @@
         { "id": "campos", "nombre": "Campos" },
         { "id": "paneles", "nombre": "Paneles" },
         { "id": "navegacion", "nombre": "Navegacion" },
-        { "id": "datos", "nombre": "Datos" }
+        { "id": "datos", "nombre": "Datos" },
+        { "id": "galerias", "nombre": "Galerias" }
       ]
     },
     {

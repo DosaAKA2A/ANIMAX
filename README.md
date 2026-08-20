@@ -155,9 +155,28 @@ Lo que se copia y lo que se baja siempre es lo que se esta viendo, y el nombre l
   demas. Cada uno entra con su propio sufijo, que se retira al copiar o al bajar.
 
 Una tipografia que no este instalada **no** se convierte en trazados: si el SVG trae
-texto vivo, se vera con una de repuesto. Es el caso de `logos/arc.svg`, que lleva la
-palabra "arc" en Trade Gothic Next LT Pro. La salida es pedir el archivo reexportado
-con el texto convertido a curvas.
+texto vivo, se vera con una de repuesto. Fue el caso de `logos/arc.svg`, que llevaba la
+palabra "arc" en Trade Gothic Next LT Pro; se reemplazo por el archivo reexportado con
+el texto en curvas, que es siempre la salida.
+
+## Una pieza de interfaz se mira como un cuaderno de codigo
+
+Las fichas `.html` no abren con la vista a un lado y el codigo al otro, sino con el
+reparto de un cuaderno: **las tres lenguas arriba, una al lado de otra — HTML, CSS y
+JS — y la pieza viva a todo lo ancho debajo**. Se lee en ese orden: que dice el
+archivo, y luego que hace.
+
+Separar las lenguas es **solo para mirar**. El archivo sigue siendo uno, y "Copiar la
+pieza entera" copia ese archivo tal cual. Cada hoja ademas se copia suelta, para
+llevarse solo el CSS o solo el JS.
+
+Lo que la pieza carga de fuera — un `<script src>` o un `<link rel=stylesheet>` — no
+es codigo suyo, asi que no entra en ninguna hoja: se lista aparte, bajo **Carga
+aparte**, con su direccion entera.
+
+El color del codigo dice una cosa sola, como el resto de la casa: **ambar lo que es
+valor** (cadenas, colores, medidas), blanco lo que nombra (etiquetas, propiedades,
+palabras del lenguaje) y gris apagado los comentarios. Nada de arcoiris.
 
 ## Derechos
 
@@ -174,6 +193,9 @@ de sus autores. **Anota siempre el origen en la `nota` de la ficha.** Hoy es el 
 de las 72 formas de `svgs/`, que son de shapes.gallery (Mo), y de los ocho logos del
 grupo `terceros` (Arc, Arcoroc, Cristal d'Arques, Chef & Sommelier, KitchenAid, Mychef,
 Roichen y Wolfen), que son de sus titulares.
+
+Con el codigo pasa igual: la pieza `interfaces/bento-flip.html` esta reescrita con
+clases propias, pero **la tecnica es de GreenSock** y su ficha lo dice.
 
 ## Atajos
 
