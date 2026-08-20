@@ -40,13 +40,25 @@ publican unicamente para su consulta.
    IRIS Studio y las personas expresamente autorizadas por el estudio pueden usar
    este material en los proyectos del propio estudio sin restriccion.
 
-4. MARCAS DE TERCEROS
+4. MATERIAL DE TERCEROS
 
-   La seccion `logos/` puede contener marcas que NO son de IRIS Studio, guardadas
-   como referencia de trabajo. Esas marcas siguen siendo propiedad de sus titulares
-   y esta licencia no se aplica a ellas ni transmite derecho alguno sobre ellas. Su
-   presencia aqui no implica afiliacion ni respaldo, y su uso queda sujeto a las
-   normas de marca de cada titular.
+   La biblioteca guarda tambien material que NO es de IRIS Studio, recogido como
+   herramienta de trabajo. Ese material sigue siendo de sus autores o titulares,
+   esta licencia NO se aplica a el y no transmite ningun derecho sobre el. Cada
+   ficha lleva su origen anotado.
+
+   A dia de hoy:
+
+   - `svgs/` — el juego de 72 formas geometricas procede de shapes.gallery, obra
+     de Mo, que las ofrece para usar en proyectos propios. No las hemos hecho
+     nosotros y no las reclamamos. Se les cambio el color a `currentColor` y se
+     les anadio `viewBox`; el dibujo es el original.
+   - `logos/` — las marcas de terceros que se guarden siguen siendo de sus
+     titulares. Su presencia aqui no implica afiliacion ni respaldo, y su uso
+     queda sujeto a las normas de marca de cada uno.
+
+   Antes de usar material de terceros en un encargo, comprobar sus condiciones.
+   Lo que esta licencia protege es lo que hacemos nosotros.
 
 5. SIN GARANTIA
 

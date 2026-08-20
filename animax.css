@@ -224,12 +224,10 @@ a{ color: inherit; text-decoration: none; }
 }
 
 .ventana{
-  display: block; width: 100%;
-  text-align: left;
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-l);
-  overflow: hidden;
   transition: border-color var(--dur-2) var(--ease), transform var(--dur-2) var(--ease),
               background var(--dur-2) var(--ease);
 }
@@ -238,7 +236,35 @@ a{ color: inherit; text-decoration: none; }
   background: var(--card);
   transform: translateY(-2px);
 }
-.ventana[aria-expanded="true"]{ border-color: var(--wash-2); background: var(--card); }
+.ventana[data-abierta="si"]{ border-color: var(--wash-2); background: var(--card); }
+
+.ventana__abrir{
+  display: block; width: 100%;
+  text-align: left;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* Copiar sin abrir la ficha, como en la galeria de formas. Aparece al pasar por
+   encima y tambien al llegar con el teclado. */
+.ventana__copiar{
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  padding: 4px 9px;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-full);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease), color var(--dur-1) var(--ease);
+}
+.ventana:hover .ventana__copiar,
+.ventana__copiar:focus-visible{ opacity: 1; }
+.ventana__copiar:hover{ color: var(--accent); border-color: var(--wash-2); }
+.ventana__copiar[data-hecho="si"]{ opacity: 1; color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
 
 .ventana__marco{
   position: relative;
@@ -254,6 +280,10 @@ a{ color: inherit; text-decoration: none; }
 }
 .ventana__lienzo iframe{ width: 100%; height: 100%; border: 0; display: block; }
 .ventana__lienzo img{ max-width: 76%; max-height: 70%; display: block; }
+
+/* Los SVG van en linea para que hereden el color; la caja manda el tamano. */
+.vector{ display: grid; place-items: center; width: 100%; height: 100%; }
+.vector svg{ width: 62%; height: 62%; display: block; }
 
 /* los tres materiales sobre los que se juzga una ficha */
 .fondo-carta{ background: var(--carta); }
@@ -525,3 +555,42 @@ body:not([data-dentro="si"]) .salir{ display: none; }
   color: #e5948a;
 }
 .puerta__err[hidden]{ display: none; }
+
+/* ---------- SVGs: la galeria ----------
+   Geometria medida en shapes.gallery (2026-08-20): baldosa 243x242 con radio 30
+   (12,3 % del lado), forma dentro a 110 px, o sea el 45 % de la baldosa, sobre
+   #0f0f0f en pagina negra y tenida del acento del sitio. Aqui la baldosa es
+   cuadrada, el radio va al 12 % y la forma toma el ambar de Animax. */
+
+.ventana--svgs{ border-radius: 28px; }
+.ventana--svgs .ventana__marco{
+  aspect-ratio: 1 / 1;
+  border-bottom: 0;
+}
+.ventana--svgs .ventana__lienzo{ color: var(--accent); }
+.ventana--svgs .vector svg{ width: 45%; height: 45%; }
+
+/* El nombre no compite con la forma: sale al pasar por encima. Son "Forma 07",
+   no dicen nada que la propia forma no diga. */
+.ventana--svgs .ventana__pie{
+  position: absolute; inset: auto 0 0 0;
+  padding: 22px 14px 12px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--bg) 88%, transparent), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
+}
+.ventana--svgs:hover .ventana__pie,
+.ventana--svgs .ventana__abrir:focus-visible .ventana__pie{ opacity: 1; }
+
+.ventana--svgs .ventana__marco{ border-radius: inherit; }
+
+/* Abierta, la forma se ve grande y sobre el material que se elija. */
+.mesa--svgs .mesa__vista .vector svg{ width: 52%; height: 52%; }
+.mesa--svgs .mesa__vista{ color: var(--accent); }
+.mesa--svgs .mesa__vista.fondo-papel{ color: #17150f; }
+.mesa--svgs .mesa__vista.fondo-carta{ color: #17150f; }
+
+/* En la rejilla, la baldosa de un SVG no pinta material: se ve la superficie de
+   la ficha, un punto por encima del fondo, igual que en la referencia. El
+   material solo importa al abrirla para juzgarla. */
+.ventana--svgs .ventana__lienzo{ background: transparent; }

@@ -1,2 +1,13 @@
 .DS_Store
 Thumbs.db
+
+# El contenido de la biblioteca NO se versiona: el repo es publico y va a R2.
+interfaces/*
+svgs/*
+logos/*
+tunes/*
+!interfaces/.gitkeep
+!svgs/.gitkeep
+!logos/.gitkeep
+!tunes/.gitkeep
+catalogo.local.json

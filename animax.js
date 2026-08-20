@@ -6,7 +6,7 @@
      #/interfaces/botones    un grupo dentro de la seccion
 */
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 
 /* El contenido no esta en este repo. Vive en el bucket R2 "animax" y lo sirve el
    worker previo pase, asi que ningun archivo tiene URL que valga sin token. */
@@ -40,15 +40,33 @@ const seccionDe = id => secciones.find(s => s.id === id) || null;
 
 /* ---------- carga ---------- */
 
+/* Con ?local=1 la pagina lee las fichas del catalogo.json del repo y los archivos
+   por ruta relativa, sin bucket ni pase. Es para maquetar y para mirar una ficha
+   antes de subirla; el contenido de verdad nunca se sirve asi. */
+const LOCAL = new URLSearchParams(location.search).has("local");
+
 async function arrancar(){
   /* Las SECCIONES son estructura y viven en el repo publico. Las FICHAS y los
      archivos son contenido con derechos y vienen del bucket, previo pase. */
+  let semilla;
   try{
-    const semilla = await (await fetch("catalogo.json", { cache: "no-cache" })).json();
+    semilla = await (await fetch("catalogo.json", { cache: "no-cache" })).json();
     secciones = semilla.secciones || [];
   }catch(e){
     return decir("No se pudo leer catalogo.json",
       "Si abriste index.html directamente, el navegador no deja leer archivos. Levanta el servidor con .\abrir.ps1 y entra por http://localhost:4173/");
+  }
+
+  if(LOCAL){
+    /* catalogo.local.json es la lista de pruebas y no se versiona; si no esta,
+       valen las fichas que traiga el propio catalogo.json */
+    let pruebas = null;
+    try{ pruebas = await (await fetch("catalogo.local.json", { cache: "no-cache" })).json(); }
+    catch(e){ /* no hay lista de pruebas */ }
+    fichas = (pruebas && pruebas.fichas) || semilla.fichas || [];
+    document.body.dataset.dentro = "si";
+    pintarSecciones();
+    return pintar();
   }
 
   if(!token) return puerta();
@@ -157,6 +175,7 @@ function puerta(aviso){
 
 /* Toda ruta de archivo se resuelve contra el worker, nunca contra el sitio. */
 function urlDe(key, descarga){
+  if(LOCAL) return key;
   return API + (descarga ? "/descargar" : "/archivo")
     + "?key=" + encodeURIComponent(key)
     + "&t=" + encodeURIComponent(token)
@@ -293,12 +312,15 @@ function decir(titulo, cuerpo){
 }
 
 function ventana(p){
-  const b = document.createElement("button");
-  b.className = "ventana";
-  b.type = "button";
-  b.dataset.id = p.id;
-  b.setAttribute("role", "listitem");
-  b.setAttribute("aria-expanded", "false");
+  const caja = document.createElement("div");
+  caja.className = "ventana ventana--" + (p.seccion || "otro");
+  caja.dataset.id = p.id;
+  caja.setAttribute("role", "listitem");
+
+  const abrir = document.createElement("button");
+  abrir.className = "ventana__abrir";
+  abrir.type = "button";
+  abrir.setAttribute("aria-expanded", "false");
 
   const marco = document.createElement("div");
   marco.className = "ventana__marco";
@@ -318,9 +340,31 @@ function ventana(p){
   meta.textContent = (p.archivo.split(".").pop() || "").toLowerCase();
   pie.append(nombre, meta);
 
-  b.append(marco, pie);
-  b.addEventListener("click", () => alternar(p, b));
-  return b;
+  abrir.append(marco, pie);
+  abrir.addEventListener("click", () => alternar(p, caja));
+  caja.append(abrir);
+
+  /* El atajo de la galeria: copiar sin abrir la ficha. Va fuera del boton de
+     abrir porque un boton no puede vivir dentro de otro. */
+  const cop = document.createElement("button");
+  cop.className = "ventana__copiar";
+  cop.type = "button";
+  cop.textContent = "Copiar";
+  cop.setAttribute("aria-label", "Copiar " + p.nombre);
+  cop.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    try{
+      await navigator.clipboard.writeText(await copiable(p));
+      cop.textContent = "Copiado";
+      cop.dataset.hecho = "si";
+    }catch(e){
+      cop.textContent = "No se pudo";
+    }
+    setTimeout(() => { cop.textContent = "Copiar"; delete cop.dataset.hecho; }, 1300);
+  });
+  caja.append(cop);
+
+  return caja;
 }
 
 /* ---------- vistas previas ---------- */
@@ -339,7 +383,17 @@ async function vista(p, destino, mini){
     return;
   }
 
-  if(c === "vector" || c === "imagen"){
+  if(c === "vector"){
+    /* En linea, no como <img>: solo asi el fill="currentColor" toma el color de
+       la baldosa, que es como se ven las formas en la galeria de referencia. */
+    const caja = document.createElement("div");
+    caja.className = "vector";
+    caja.innerHTML = desinfecta(await fuente(p.archivo));
+    destino.replaceChildren(caja);
+    return;
+  }
+
+  if(c === "imagen"){
     const img = document.createElement("img");
     img.src = urlDe(p.archivo);
     img.alt = p.nombre;
@@ -357,6 +411,16 @@ async function vista(p, destino, mini){
   nada.className = "sinvista";
   nada.textContent = "sin vista previa";
   destino.replaceChildren(nada);
+}
+
+/* Los SVG del bucket son nuestros, pero inyectar markup sin mirarlo es como se
+   cuelan los sustos: fuera scripts, manejadores y javascript: en los enlaces. */
+function desinfecta(svg){
+  return String(svg)
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/\s on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/(xlink:href|href)\s*=\s*("|')\s*javascript:[^"']*\2/gi, "")
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "");
 }
 
 /* La envoltura NO forma parte de lo que se copia: solo centra la pieza y le da tipografia. */
@@ -504,28 +568,31 @@ function cerrar(){
     if(a) a.pause();
     m.remove();
   }
-  tabla.querySelectorAll('.ventana[aria-expanded="true"]')
-       .forEach(v => v.setAttribute("aria-expanded", "false"));
+  tabla.querySelectorAll('.ventana[data-abierta="si"]').forEach(v => {
+    delete v.dataset.abierta;
+    v.querySelector(".ventana__abrir").setAttribute("aria-expanded", "false");
+  });
 }
 
-function alternar(p, boton){
+function alternar(p, caja){
   const eraEsta = abierta === p.id;
   cerrar();
   if(eraEsta){ abierta = null; return; }
 
   abierta = p.id;
-  boton.setAttribute("aria-expanded", "true");
+  caja.dataset.abierta = "si";
+  caja.querySelector(".ventana__abrir").setAttribute("aria-expanded", "true");
 
   const items = [...tabla.querySelectorAll(".ventana")];
   const cols = columnas();
-  const i = items.indexOf(boton);
+  const i = items.indexOf(caja);
   const finDeFila = items[Math.min(items.length - 1, Math.floor(i / cols) * cols + cols - 1)];
   finDeFila.after(mesa(p));
 }
 
 function mesa(p){
   const m = document.createElement("section");
-  m.className = "mesa";
+  m.className = "mesa mesa--" + (p.seccion || "otro");
   m.setAttribute("aria-label", p.nombre);
 
   const panel = document.createElement("div");
@@ -638,7 +705,7 @@ addEventListener("keydown", e => {
   if(e.key === "/" && document.activeElement !== campo){ e.preventDefault(); campo.focus(); }
   if(e.key === "Escape"){
     if(tabla.querySelector(".mesa")){
-      const b = tabla.querySelector('.ventana[aria-expanded="true"]');
+      const b = tabla.querySelector('.ventana[data-abierta="si"] .ventana__abrir');
       cerrar();
       abierta = null;
       if(b) b.focus();
@@ -650,7 +717,7 @@ addEventListener("keydown", e => {
 
 addEventListener("resize", () => {
   if(!abierta) return;
-  const b = tabla.querySelector('.ventana[aria-expanded="true"]');
+  const b = tabla.querySelector('.ventana[data-abierta="si"]');
   const p = fichas.find(x => x.id === abierta);
   if(b && p){ abierta = null; alternar(p, b); }
 });
